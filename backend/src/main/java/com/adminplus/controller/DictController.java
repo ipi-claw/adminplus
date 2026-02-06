@@ -1,0 +1,101 @@
+package com.adminplus.controller;
+
+import com.adminplus.dto.DictCreateReq;
+import com.adminplus.dto.DictUpdateReq;
+import com.adminplus.service.DictService;
+import com.adminplus.utils.ApiResponse;
+import com.adminplus.vo.DictVO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 字典控制器
+ *
+ * @author AdminPlus
+ * @since 2026-02-06
+ */
+@Slf4j
+@RestController
+@RequestMapping("/sys/dicts")
+@RequiredArgsConstructor
+@Tag(name = "字典管理", description = "字典增删改查")
+public class DictController {
+
+    private final DictService dictService;
+
+    @GetMapping
+    @Operation(summary = "分页查询字典列表")
+    @PreAuthorize("hasAuthority('dict:list')")
+    public ApiResponse<Map<String, Object>> getDictList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword
+    ) {
+        List<DictVO> dicts = dictService.getDictList(page, size, keyword);
+        return ApiResponse.ok(Map.of(
+                "records", dicts,
+                "page", page,
+                "size", size,
+                "total", dicts.size()
+        ));
+    }
+
+    @GetMapping("/type/{dictType}")
+    @Operation(summary = "根据字典类型查询")
+    @PreAuthorize("hasAuthority('dict:query')")
+    public ApiResponse<DictVO> getDictByType(@PathVariable String dictType) {
+        DictVO dict = dictService.getDictByType(dictType);
+        return ApiResponse.ok(dict);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "根据ID查询字典")
+    @PreAuthorize("hasAuthority('dict:query')")
+    public ApiResponse<DictVO> getDictById(@PathVariable Long id) {
+        DictVO dict = dictService.getDictById(id);
+        return ApiResponse.ok(dict);
+    }
+
+    @PostMapping
+    @Operation(summary = "创建字典")
+    @PreAuthorize("hasAuthority('dict:add')")
+    public ApiResponse<DictVO> createDict(@Valid @RequestBody DictCreateReq req) {
+        DictVO dict = dictService.createDict(req);
+        return ApiResponse.ok(dict);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "更新字典")
+    @PreAuthorize("hasAuthority('dict:edit')")
+    public ApiResponse<DictVO> updateDict(@PathVariable Long id, @Valid @RequestBody DictUpdateReq req) {
+        DictVO dict = dictService.updateDict(id, req);
+        return ApiResponse.ok(dict);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "删除字典")
+    @PreAuthorize("hasAuthority('dict:delete')")
+    public ApiResponse<Void> deleteDict(@PathVariable Long id) {
+        dictService.deleteDict(id);
+        return ApiResponse.ok();
+    }
+
+    @PutMapping("/{id}/status")
+    @Operation(summary = "更新字典状态")
+    @PreAuthorize("hasAuthority('dict:edit')")
+    public ApiResponse<Void> updateDictStatus(
+            @PathVariable Long id,
+            @RequestParam Integer status
+    ) {
+        dictService.updateDictStatus(id, status);
+        return ApiResponse.ok();
+    }
+}

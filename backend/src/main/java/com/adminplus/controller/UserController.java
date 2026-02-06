@@ -1,0 +1,123 @@
+package com.adminplus.controller;
+
+import com.adminplus.dto.UserCreateReq;
+import com.adminplus.dto.UserUpdateReq;
+import com.adminplus.service.UserService;
+import com.adminplus.utils.ApiResponse;
+import com.adminplus.vo.UserVO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 用户控制器
+ *
+ * @author AdminPlus
+ * @since 2026-02-06
+ */
+@Slf4j
+@RestController
+@RequestMapping("/sys/users")
+@RequiredArgsConstructor
+@Tag(name = "用户管理", description = "用户增删改查")
+public class UserController {
+
+    private final UserService userService;
+
+    @GetMapping
+    @Operation(summary = "分页查询用户列表")
+    @PreAuthorize("hasAuthority('user:list')")
+    public ApiResponse<Map<String, Object>> getUserList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword
+    ) {
+        List<UserVO> users = userService.getUserList(page, size, keyword);
+        return ApiResponse.ok(Map.of(
+                "records", users,
+                "page", page,
+                "size", size,
+                "total", users.size()
+        ));
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "根据ID查询用户")
+    @PreAuthorize("hasAuthority('user:query')")
+    public ApiResponse<UserVO> getUserById(@PathVariable Long id) {
+        UserVO user = userService.getUserById(id);
+        return ApiResponse.ok(user);
+    }
+
+    @PostMapping
+    @Operation(summary = "创建用户")
+    @PreAuthorize("hasAuthority('user:add')")
+    public ApiResponse<UserVO> createUser(@Valid @RequestBody UserCreateReq req) {
+        UserVO user = userService.createUser(req);
+        return ApiResponse.ok(user);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "更新用户")
+    @PreAuthorize("hasAuthority('user:edit')")
+    public ApiResponse<UserVO> updateUser(@PathVariable Long id, @Valid @RequestBody UserUpdateReq req) {
+        UserVO user = userService.updateUser(id, req);
+        return ApiResponse.ok(user);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "删除用户")
+    @PreAuthorize("hasAuthority('user:delete')")
+    public ApiResponse<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ApiResponse.ok();
+    }
+
+    @PutMapping("/{id}/status")
+    @Operation(summary = "更新用户状态")
+    @PreAuthorize("hasAuthority('user:edit')")
+    public ApiResponse<Void> updateUserStatus(
+            @PathVariable Long id,
+            @RequestParam Integer status
+    ) {
+        userService.updateUserStatus(id, status);
+        return ApiResponse.ok();
+    }
+
+    @PutMapping("/{id}/password")
+    @Operation(summary = "重置用户密码")
+    @PreAuthorize("hasAuthority('user:edit')")
+    public ApiResponse<Void> resetPassword(
+            @PathVariable Long id,
+            @RequestParam String password
+    ) {
+        userService.resetPassword(id, password);
+        return ApiResponse.ok();
+    }
+
+    @PutMapping("/{id}/roles")
+    @Operation(summary = "为用户分配角色")
+    @PreAuthorize("hasAuthority('user:assign')")
+    public ApiResponse<Void> assignRoles(
+            @PathVariable Long id,
+            @RequestBody List<Long> roleIds
+    ) {
+        userService.assignRoles(id, roleIds);
+        return ApiResponse.ok();
+    }
+
+    @GetMapping("/{id}/roles")
+    @Operation(summary = "查询用户的角色ID列表")
+    @PreAuthorize("hasAuthority('user:query')")
+    public ApiResponse<List<Long>> getUserRoleIds(@PathVariable Long id) {
+        List<Long> roleIds = userService.getUserRoleIds(id);
+        return ApiResponse.ok(roleIds);
+    }
+}

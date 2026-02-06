@@ -1,0 +1,41 @@
+package com.adminplus.service;
+
+import com.adminplus.dto.MenuCreateReq;
+import com.adminplus.dto.MenuUpdateReq;
+import com.adminplus.vo.MenuVO;
+
+import java.util.List;
+
+/**
+ * 菜单服务接口
+ *
+ * @author AdminPlus
+ * @since 2026-02-06
+ */
+public interface MenuService {
+
+    /**
+     * 查询菜单树形列表
+     */
+    List<MenuVO> getMenuTree();
+
+    /**
+     * 根据ID查询菜单
+     */
+    MenuVO getMenuById(Long id);
+
+    /**
+     * 创建菜单
+     */
+    MenuVO createMenu(MenuCreateReq req);
+
+    /**
+     * 更新菜单
+     */
+    MenuVO updateMenu(Long id, MenuUpdateReq req);
+
+    /**
+     * 删除菜单
+     */
+    void deleteMenu(Long id);
+}
