@@ -4,7 +4,6 @@ import com.adminplus.security.CustomUserDetails;
 import com.adminplus.service.PermissionService;
 import com.adminplus.utils.ApiResponse;
 import com.adminplus.vo.PermissionVO;
-import com.adminplus.vo.RoleVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -43,10 +42,10 @@ public class PermissionController {
     @GetMapping("/current/roles")
     @Operation(summary = "获取当前用户的角色列表")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<RoleVO>> getCurrentUserRoles(Authentication authentication) {
+    public ApiResponse<List<String>> getCurrentUserRoles(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long userId = userDetails.getId();
-        List<RoleVO> roles = permissionService.getUserRoles(userId);
+        List<String> roles = permissionService.getUserRoles(userId);
         return ApiResponse.ok(roles);
     }
 

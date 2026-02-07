@@ -3,20 +3,17 @@ package com.adminplus.service.impl;
 import com.adminplus.entity.MenuEntity;
 import com.adminplus.entity.RoleEntity;
 import com.adminplus.entity.UserRoleEntity;
-import com.adminplus.exception.BizException;
 import com.adminplus.repository.MenuRepository;
 import com.adminplus.repository.RoleMenuRepository;
 import com.adminplus.repository.RoleRepository;
 import com.adminplus.repository.UserRoleRepository;
 import com.adminplus.service.PermissionService;
 import com.adminplus.vo.PermissionVO;
-import com.adminplus.vo.RoleVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,6 +75,32 @@ public class PermissionServiceImpl implements PermissionService {
                 .filter(role -> role != null)
                 .map(RoleEntity::getCode)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Long> getUserRoleIds(Long userId) {
+        return userRoleRepository.findByUserId(userId).stream()
+                .map(UserRoleEntity::getRoleId)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getRolePermissions(Long roleId) {
+        // 1. 查询角色的菜单ID列表
+        List<Long> menuIds = roleMenuRepository.findMenuIdByRoleId(roleId);
+
+        if (menuIds.isEmpty()) {
+            return List.of();
+        }
+
+        // 2. 查询菜单的权限标识符（permKey），过滤掉空值
+        return menuIds.stream()
+                .map(menuId -> menuRepository.findById(menuId).orElse(null))
+                .filter(menu -> menu != null && menu.getPermKey() != null && !menu.getPermKey().isBlank())
+                .map(MenuEntity::getPermKey)
+                .collect(Collectors.toList());
     }
 
     @Override
