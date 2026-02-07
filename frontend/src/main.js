@@ -7,6 +7,7 @@ import router from './router'
 import App from './App.vue'
 import { setupDirectives } from './directives'
 import { setupErrorHandler } from './utils/errorHandler'
+import LoginDialog from './components/LoginDialog.vue'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -15,6 +16,9 @@ const pinia = createPinia()
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
+
+// 注册全局登录对话框组件
+app.component('LoginDialog', LoginDialog)
 
 // 注册自定义指令
 setupDirectives(app)

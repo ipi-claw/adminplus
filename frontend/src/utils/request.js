@@ -1,6 +1,49 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
+import { login } from '@/api/auth'
+
+// 全局登录对话框控制
+let loginDialogVisible = false
+let loginDialogResolve = null
+let loginDialogReject = null
+
+// 显示登录对话框的方法
+export const showLoginDialog = () => {
+  return new Promise((resolve, reject) => {
+    loginDialogVisible = true
+    loginDialogResolve = resolve
+    loginDialogReject = reject
+    // 触发自定义事件通知组件显示
+    window.dispatchEvent(new CustomEvent('show-login-dialog'))
+  })
+}
+
+// 关闭登录对话框的方法
+export const hideLoginDialog = () => {
+  loginDialogVisible = false
+  loginDialogResolve = null
+  loginDialogReject = null
+  // 触发自定义事件通知组件隐藏
+  window.dispatchEvent(new CustomEvent('hide-login-dialog'))
+}
+
+// 处理登录成功
+export const handleLoginSuccess = (token, user) => {
+  sessionStorage.setItem('token', token)
+  sessionStorage.setItem('user', JSON.stringify(user))
+  if (loginDialogResolve) {
+    loginDialogResolve({ token, user })
+  }
+  hideLoginDialog()
+}
+
+// 处理登录失败
+export const handleLoginError = (error) => {
+  if (loginDialogReject) {
+    loginDialogReject(error)
+  }
+}
 
 const request = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
@@ -33,15 +76,25 @@ request.interceptors.response.use(
       return Promise.reject(new Error(message || '请求失败'))
     }
   },
-  error => {
+  async error => {
     if (error.response) {
       const { status } = error.response
 
       if (status === 401) {
-        ElMessage.error('登录已过期，请重新登录')
-        sessionStorage.removeItem('token')
-        sessionStorage.removeItem('user')
-        router.push('/login')
+        // 如果已经显示登录对话框，不再重复显示
+        if (!loginDialogVisible) {
+          try {
+            // 显示登录对话框，等待用户登录
+            await showLoginDialog()
+            // 登录成功后刷新当前页面
+            window.location.reload()
+          } catch (err) {
+            // 用户取消登录或登录失败，跳转到登录页
+            sessionStorage.removeItem('token')
+            sessionStorage.removeItem('user')
+            router.push('/login')
+          }
+        }
       } else if (status === 403) {
         ElMessage.error('无权访问')
       } else if (status === 500) {
