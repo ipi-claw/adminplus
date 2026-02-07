@@ -48,8 +48,8 @@
         </el-table-column>
         <el-table-column label="状态" width="80">
           <template #default="{ row }">
-            <el-tag :type="row.status === STATUS.NORMAL ? 'success' : 'danger'" size="small">
-              {{ row.status === STATUS.NORMAL ? '正常' : '禁用' }}
+            <el-tag :type="row.status === STATUS.ENABLED ? 'success' : 'danger'" size="small">
+              {{ row.status === STATUS.ENABLED ? '正常' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -115,13 +115,13 @@
         </el-form-item>
         <el-form-item label="是否可见" prop="visible">
           <el-radio-group v-model="form.visible">
-            <el-radio :value="VISIBLE.SHOW">显示</el-radio>
-            <el-radio :value="VISIBLE.HIDE">隐藏</el-radio>
+            <el-radio :value="VISIBLE.SHOWN">显示</el-radio>
+            <el-radio :value="VISIBLE.HIDDEN">隐藏</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio :value="STATUS.NORMAL">正常</el-radio>
+            <el-radio :value="STATUS.ENABLED">正常</el-radio>
             <el-radio :value="STATUS.DISABLED">禁用</el-radio>
           </el-radio-group>
         </el-form-item>
