@@ -115,6 +115,9 @@ public class DictServiceImpl implements DictService {
                 .orElseThrow(() -> new BizException("字典不存在"));
 
         dict.setDictName(req.dictName());
+        if (req.status() != null) {
+            dict.setStatus(req.status());
+        }
         dict.setRemark(req.remark());
 
         dict = dictRepository.save(dict);
@@ -163,6 +166,7 @@ public class DictServiceImpl implements DictService {
                 dict.getId(),
                 dict.getDictType(),
                 dict.getDictName(),
+                dict.getStatus(),
                 dict.getRemark(),
                 dict.getCreateTime(),
                 dict.getUpdateTime()

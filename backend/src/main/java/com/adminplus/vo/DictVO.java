@@ -12,6 +12,7 @@ public record DictVO(
         Long id,
         String dictType,
         String dictName,
+        Integer status,
         String remark,
         Instant createTime,
         Instant updateTime

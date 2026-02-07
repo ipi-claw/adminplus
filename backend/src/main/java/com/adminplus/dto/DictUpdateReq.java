@@ -14,6 +14,8 @@ public record DictUpdateReq(
         @Size(max = 100, message = "字典名称长度不能超过100")
         String dictName,
 
+        Integer status,
+
         @Size(max = 500, message = "备注长度不能超过500")
         String remark
 ) {}
