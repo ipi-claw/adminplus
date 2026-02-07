@@ -3,6 +3,7 @@ package com.adminplus.utils;
 import com.adminplus.security.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 /**
  * 安全工具类
@@ -14,27 +15,112 @@ public class SecurityUtils {
 
     /**
      * 获取当前认证的用户信息
+     * 支持自定义用户详情和 JWT 认证
      */
     public static CustomUserDetails getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
-            return (CustomUserDetails) authentication.getPrincipal();
+        if (authentication == null) {
+            throw new RuntimeException("未登录或登录已过期");
         }
-        throw new RuntimeException("未登录或登录已过期");
+
+        Object principal = authentication.getPrincipal();
+
+        // 传统 Session 认证：principal 是 CustomUserDetails
+        if (principal instanceof CustomUserDetails) {
+            return (CustomUserDetails) principal;
+        }
+
+        // JWT 认证：principal 是 Jwt 对象
+        if (principal instanceof Jwt jwt) {
+            // 从 JWT 中提取用户信息
+            String username = jwt.getSubject();
+            Object userIdClaim = jwt.getClaim("userId");
+
+            if (userIdClaim == null) {
+                throw new RuntimeException("JWT 中缺少用户 ID 信息");
+            }
+
+            Long userId;
+            if (userIdClaim instanceof Number) {
+                userId = ((Number) userIdClaim).longValue();
+            } else {
+                userId = Long.parseLong(userIdClaim.toString());
+            }
+
+            // 创建一个简化的 CustomUserDetails 对象
+            // 注意：此对象仅包含基本信息，不包含密码等敏感信息
+            return new CustomUserDetails(
+                    userId,
+                    username,
+                    null, // password - JWT 认证不需要密码
+                    null, // nickname
+                    null, // email
+                    null, // phone
+                    null, // avatar
+                    1,    // status - 默认启用
+                    null, // roles - 从 JWT authorities 中获取
+                    null  // permissions - 从 JWT authorities 中获取
+            );
+        }
+
+        throw new RuntimeException("未知的认证类型: " + principal.getClass().getName());
     }
 
     /**
      * 获取当前用户ID
      */
     public static Long getCurrentUserId() {
-        return getCurrentUser().getId();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new RuntimeException("未登录或登录已过期");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        // 传统 Session 认证
+        if (principal instanceof CustomUserDetails userDetails) {
+            return userDetails.getId();
+        }
+
+        // JWT 认证
+        if (principal instanceof Jwt jwt) {
+            Object userIdClaim = jwt.getClaim("userId");
+            if (userIdClaim == null) {
+                throw new RuntimeException("JWT 中缺少用户 ID 信息");
+            }
+
+            if (userIdClaim instanceof Number) {
+                return ((Number) userIdClaim).longValue();
+            } else {
+                return Long.parseLong(userIdClaim.toString());
+            }
+        }
+
+        throw new RuntimeException("未知的认证类型: " + principal.getClass().getName());
     }
 
     /**
      * 获取当前用户名
      */
     public static String getCurrentUsername() {
-        return getCurrentUser().getUsername();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new RuntimeException("未登录或登录已过期");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        // 传统 Session 认证
+        if (principal instanceof CustomUserDetails userDetails) {
+            return userDetails.getUsername();
+        }
+
+        // JWT 认证
+        if (principal instanceof Jwt jwt) {
+            return jwt.getSubject();
+        }
+
+        throw new RuntimeException("未知的认证类型: " + principal.getClass().getName());
     }
 
     /**

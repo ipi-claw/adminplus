@@ -4,6 +4,7 @@ import com.adminplus.dto.UserLoginReq;
 import com.adminplus.security.CustomUserDetails;
 import com.adminplus.service.AuthService;
 import com.adminplus.utils.ApiResponse;
+import com.adminplus.utils.SecurityUtils;
 import com.adminplus.vo.LoginResp;
 import com.adminplus.vo.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,8 +45,9 @@ public class AuthController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取当前用户信息")
     public ApiResponse<UserVO> getCurrentUser(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        UserVO userVO = authService.getCurrentUser(userDetails.getUsername());
+        // 使用 SecurityUtils 获取当前用户名，支持 JWT 和 Session 认证
+        String username = SecurityUtils.getCurrentUsername();
+        UserVO userVO = authService.getCurrentUser(username);
         return ApiResponse.ok(userVO);
     }
 
@@ -53,8 +55,9 @@ public class AuthController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取当前用户的权限列表")
     public ApiResponse<List<String>> getCurrentUserPermissions(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        List<String> permissions = authService.getCurrentUserPermissions(userDetails.getUsername());
+        // 使用 SecurityUtils 获取当前用户名，支持 JWT 和 Session 认证
+        String username = SecurityUtils.getCurrentUsername();
+        List<String> permissions = authService.getCurrentUserPermissions(username);
         return ApiResponse.ok(permissions);
     }
 

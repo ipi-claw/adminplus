@@ -61,6 +61,8 @@ public class AuthServiceImpl implements AuthService {
                     .issuedAt(now)
                     .expiresAt(now.plus(24, ChronoUnit.HOURS))
                     .subject(authentication.getName())
+                    .claim("userId", user.getId())
+                    .claim("username", user.getUsername())
                     .claim("scope", "ROLE_USER")
                     .build();
 

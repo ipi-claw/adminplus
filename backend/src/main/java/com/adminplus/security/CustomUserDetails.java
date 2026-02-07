@@ -85,4 +85,37 @@ public class CustomUserDetails implements UserDetails {
     public boolean isEnabled() {
         return status != null && status == 1;
     }
+
+    /**
+     * 从 JWT 对象创建 CustomUserDetails
+     * 用于 JWT 认证场景
+     */
+    public static CustomUserDetails fromJwt(org.springframework.security.oauth2.jwt.Jwt jwt) {
+        Long userId = jwt.getClaim("userId");
+        String username = jwt.getSubject();
+
+        // 从 scope claim 中提取权限
+        Collection<GrantedAuthority> authorities = new java.util.ArrayList<>();
+        Object scopeClaim = jwt.getClaim("scope");
+        if (scopeClaim instanceof String) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + scopeClaim));
+        } else if (scopeClaim instanceof Collection) {
+            ((Collection<?>) scopeClaim).forEach(scope ->
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + scope))
+            );
+        }
+
+        return new CustomUserDetails(
+            userId,
+            username,
+            null,  // JWT 不包含密码
+            null,  // nickname
+            null,  // email
+            null,  // phone
+            null,  // avatar
+            1,     // status - 假设有效
+            null,  // roles
+            null   // permissions
+        );
+    }
 }
