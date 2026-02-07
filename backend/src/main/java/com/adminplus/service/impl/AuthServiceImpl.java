@@ -54,6 +54,9 @@ public class AuthServiceImpl implements AuthService {
                     new UsernamePasswordAuthenticationToken(req.username(), req.password())
             );
 
+            // 获取用户信息
+            UserEntity user = userService.getUserByUsername(req.username());
+
             // 生成 JWT Token
             Instant now = Instant.now();
             JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -67,9 +70,6 @@ public class AuthServiceImpl implements AuthService {
                     .build();
 
             String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-
-            // 获取用户信息
-            UserEntity user = userService.getUserByUsername(req.username());
 
             // 查询用户角色
             List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(user.getId());

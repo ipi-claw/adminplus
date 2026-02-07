@@ -50,6 +50,8 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_PROFILES_ACTIVE: prod
+    volumes:
+      - uploads-data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -85,6 +87,8 @@ volumes:
   postgres-data:
     driver: local
   redis-data:
+    driver: local
+  uploads-data:
     driver: local
 
 networks:

@@ -80,6 +80,7 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Avatar, ArrowDown, HomeFilled, Setting, User, UserFilled, Menu, Document } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { useConfirm } from '@/composables/useConfirm'
 
