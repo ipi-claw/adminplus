@@ -211,7 +211,7 @@ onMounted(() => {
               v-model="row.status"
               :active-value="1"
               :inactive-value="0"
-              @change="handleStatusChange(row)"
+              :before-change="() => handleStatusChange(row)"
               v-auth="'dict:edit'"
             />
           </template>
