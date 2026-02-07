@@ -33,7 +33,7 @@
         <el-table-column prop="permKey" label="权限标识" width="150" />
         <el-table-column prop="icon" label="图标" width="80">
           <template #default="{ row }">
-            <el-icon v-if="row.icon">
+            <el-icon v-if="row.icon && isValidIcon(row.icon)">
               <component :is="row.icon" />
             </el-icon>
           </template>
@@ -41,15 +41,15 @@
         <el-table-column prop="sortOrder" label="排序" width="80" />
         <el-table-column label="可见" width="80">
           <template #default="{ row }">
-            <el-tag :type="row.visible === 1 ? 'success' : 'info'" size="small">
-              {{ row.visible === 1 ? '显示' : '隐藏' }}
+            <el-tag :type="row.visible === VISIBLE.SHOW ? 'success' : 'info'" size="small">
+              {{ row.visible === VISIBLE.SHOW ? '显示' : '隐藏' }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="80">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
-              {{ row.status === 1 ? '正常' : '禁用' }}
+            <el-tag :type="row.status === STATUS.NORMAL ? 'success' : 'danger'" size="small">
+              {{ row.status === STATUS.NORMAL ? '正常' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -90,24 +90,24 @@
         </el-form-item>
         <el-form-item label="菜单类型" prop="type">
           <el-radio-group v-model="form.type">
-            <el-radio :value="0">目录</el-radio>
-            <el-radio :value="1">菜单</el-radio>
-            <el-radio :value="2">按钮</el-radio>
+            <el-radio :value="MENU_TYPE.DIRECTORY">目录</el-radio>
+            <el-radio :value="MENU_TYPE.MENU">菜单</el-radio>
+            <el-radio :value="MENU_TYPE.BUTTON">按钮</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="菜单名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入菜单名称" />
         </el-form-item>
-        <el-form-item label="路由路径" prop="path" v-if="form.type !== 2">
+        <el-form-item label="路由路径" prop="path" v-if="form.type !== MENU_TYPE.BUTTON">
           <el-input v-model="form.path" placeholder="请输入路由路径（如 /system/user）" />
         </el-form-item>
-        <el-form-item label="组件路径" prop="component" v-if="form.type === 1">
+        <el-form-item label="组件路径" prop="component" v-if="form.type === MENU_TYPE.MENU">
           <el-input v-model="form.component" placeholder="请输入组件路径（如 system/User）" />
         </el-form-item>
-        <el-form-item label="权限标识" prop="permKey" v-if="form.type === 2">
+        <el-form-item label="权限标识" prop="permKey" v-if="form.type === MENU_TYPE.BUTTON">
           <el-input v-model="form.permKey" placeholder="请输入权限标识（如 user:add）" />
         </el-form-item>
-        <el-form-item label="图标" prop="icon" v-if="form.type !== 2">
+        <el-form-item label="图标" prop="icon" v-if="form.type !== MENU_TYPE.BUTTON">
           <el-input v-model="form.icon" placeholder="请输入图标名称" />
         </el-form-item>
         <el-form-item label="排序" prop="sortOrder">
@@ -115,14 +115,14 @@
         </el-form-item>
         <el-form-item label="是否可见" prop="visible">
           <el-radio-group v-model="form.visible">
-            <el-radio :value="1">显示</el-radio>
-            <el-radio :value="0">隐藏</el-radio>
+            <el-radio :value="VISIBLE.SHOW">显示</el-radio>
+            <el-radio :value="VISIBLE.HIDE">隐藏</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio :value="1">正常</el-radio>
-            <el-radio :value="0">禁用</el-radio>
+            <el-radio :value="STATUS.NORMAL">正常</el-radio>
+            <el-radio :value="STATUS.DISABLED">禁用</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -141,16 +141,37 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getMenuTree, createMenu, updateMenu, deleteMenu } from '@/api/menu'
+import { useForm } from '@/composables/useForm'
+import { useConfirm } from '@/composables/useConfirm'
+import {
+  MENU_TYPE,
+  STATUS,
+  VISIBLE
+} from '@/constants'
 
-const loading = ref(false)
-const submitLoading = ref(false)
-const dialogVisible = ref(false)
-const dialogTitle = ref('新增菜单')
-const isEdit = ref(false)
-const tableData = ref([])
+// 图标白名单
+const ALLOWED_ICONS = [
+  'Plus', 'Edit', 'Delete', 'Search', 'Setting', 'User', 'Lock', 'Unlock',
+  'View', 'Hide', 'Check', 'Close', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown',
+  'Home', 'Menu', 'Document', 'Folder', 'FolderOpened', 'Files', 'DataLine',
+  'Tools', 'Management', 'Monitor', 'Bell', 'Message', 'ChatLineSquare',
+  'Calendar', 'Clock', 'Timer', 'Warning', 'InfoFilled', 'SuccessFilled',
+  'CircleCheck', 'CircleClose', 'CirclePlus', 'CircleMinus', 'ZoomIn', 'ZoomOut',
+  'Refresh', 'RefreshRight', 'RefreshLeft', 'Download', 'Upload', 'Share',
+  'More', 'MoreFilled', 'Star', 'StarFilled', 'EditPen', 'DeleteFilled'
+]
 
-const formRef = ref()
-const form = reactive({
+/**
+ * 验证图标是否在白名单中
+ * @param {string} iconName - 图标名称
+ * @returns {boolean} - 是否有效
+ */
+const isValidIcon = (iconName) => {
+  return ALLOWED_ICONS.includes(iconName)
+}
+
+// 使用表单组合式函数
+const { form, formRef, isEdit, dialogVisible, dialogTitle, resetForm, validateForm } = useForm({
   id: null,
   parentId: null,
   type: 1,
@@ -164,21 +185,53 @@ const form = reactive({
   status: 1
 })
 
+// 使用确认组合式函数
+const confirmDelete = useConfirm({
+  title: '提示',
+  message: '确定要删除该菜单吗？',
+  confirmText: '确定',
+  cancelText: '取消',
+  type: 'warning'
+})
+
+/**
+ * 安全的图标白名单 - 防止 XSS 攻击
+ */
+const ICON_WHITELIST = [
+  'Plus', 'Edit', 'Delete', 'Search', 'Refresh', 'Setting', 'User', 'Lock',
+  'Unlock', 'Document', 'Folder', 'Menu', 'House', 'Tools', 'Monitor',
+  'DataAnalysis', 'Management', 'Tickets', 'Files', 'DocumentCopy',
+  'Collection', 'Connection', 'Link', 'Promotion', 'Notification', 'Message'
+]
+
+/**
+ * 验证图标是否在白名单中
+ * @param {string} iconName - 图标名称
+ * @returns {boolean} - 是否安全
+ */
+const isIconSafe = (iconName) => {
+  return ICON_WHITELIST.includes(iconName)
+}
+
+const loading = ref(false)
+const submitLoading = ref(false)
+const tableData = ref([])
+
 const rules = computed(() => {
   const baseRules = {
     type: [{ required: true, message: '请选择菜单类型', trigger: 'change' }],
     name: [{ required: true, message: '请输入菜单名称', trigger: 'blur' }]
   }
 
-  if (form.type !== 2) {
+  if (form.type !== MENU_TYPE.BUTTON) {
     baseRules.path = [{ required: true, message: '请输入路由路径', trigger: 'blur' }]
   }
 
-  if (form.type === 1) {
+  if (form.type === MENU_TYPE.MENU) {
     baseRules.component = [{ required: true, message: '请输入组件路径', trigger: 'blur' }]
   }
 
-  if (form.type === 2) {
+  if (form.type === MENU_TYPE.BUTTON) {
     baseRules.permKey = [{ required: true, message: '请输入权限标识', trigger: 'blur' }]
   }
 
@@ -215,7 +268,7 @@ const getData = async () => {
   try {
     tableData.value = await getMenuTree()
   } catch (error) {
-    console.error('获取菜单树失败:', error)
+    ElMessage.error('获取菜单树失败')
   } finally {
     loading.value = false
   }
@@ -233,10 +286,15 @@ const handleAddChild = (row) => {
   resetForm()
   form.parentId = row.id
   // 如果父级是目录，子菜单默认为菜单类型
-  if (row.type === 0) {
-    form.type = 1
+  if (row.type === MENU_TYPE.DIRECTORY) {
+    form.type = MENU_TYPE.MENU
   }
   dialogVisible.value = true
+}
+
+const handleDialogClose = () => {
+  formRef.value?.resetFields()
+  resetForm()
 }
 
 const handleEdit = (row) => {
@@ -246,29 +304,8 @@ const handleEdit = (row) => {
   dialogVisible.value = true
 }
 
-const resetForm = () => {
-  Object.assign(form, {
-    id: null,
-    parentId: null,
-    type: 1,
-    name: '',
-    path: '',
-    component: '',
-    permKey: '',
-    icon: '',
-    sortOrder: 0,
-    visible: 1,
-    status: 1
-  })
-}
-
-const handleDialogClose = () => {
-  formRef.value?.resetFields()
-  resetForm()
-}
-
 const handleSubmit = async () => {
-  await formRef.value.validate()
+  await validateForm()
 
   submitLoading.value = true
   try {
@@ -286,7 +323,7 @@ const handleSubmit = async () => {
     dialogVisible.value = false
     getData()
   } catch (error) {
-    console.error('提交失败:', error)
+    // 错误已在 validateForm 中处理
   } finally {
     submitLoading.value = false
   }
@@ -294,17 +331,12 @@ const handleSubmit = async () => {
 
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要删除该菜单吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+    await confirmDelete()
     await deleteMenu(row.id)
     ElMessage.success('删除成功')
     getData()
   } catch (error) {
-    console.error('删除失败:', error)
-    // 取消操作
+    // 用户取消操作
   }
 }
 
