@@ -19,7 +19,7 @@ export const useDictStore = defineStore('dict', () => {
       const data = await dictApi.getDictItemsByType(dictType)
       dictMap.value.set(dictType, data)
       return data
-    } catch (error) {
+    } catch {
       // 静默失败，返回空数组
       return []
     }
@@ -33,7 +33,7 @@ export const useDictStore = defineStore('dict', () => {
       const data = await dictApi.getDictItemsByType(dictType)
       dictMap.value.set(dictType, data)
       return data
-    } catch (error) {
+    } catch {
       // 静默失败，返回空数组
       return []
     }

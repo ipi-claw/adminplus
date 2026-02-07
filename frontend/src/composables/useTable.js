@@ -1,3 +1,5 @@
+import { ref } from 'vue'
+
 /**
  * 表格操作组合式函数
  * @param {Function} fetchApi - 获取数据的 API 函数

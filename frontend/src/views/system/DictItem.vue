@@ -4,12 +4,19 @@
       <template #header>
         <div class="card-header">
           <div class="header-left">
-            <el-button type="default" @click="handleBack" :icon="ArrowLeft">
+            <el-button
+              type="default"
+              :icon="ArrowLeft"
+              @click="handleBack"
+            >
               返回
             </el-button>
             <span class="header-title">字典项管理 - {{ dictName }}</span>
           </div>
-          <el-button type="primary" @click="handleAdd">
+          <el-button
+            type="primary"
+            @click="handleAdd"
+          >
             <el-icon><Plus /></el-icon>
             新增字典项
           </el-button>
@@ -17,12 +24,23 @@
       </template>
 
       <!-- 搜索表单 -->
-      <el-form :inline="true" :model="queryForm" class="search-form">
+      <el-form
+        :inline="true"
+        :model="queryForm"
+        class="search-form"
+      >
         <el-form-item label="标签">
-          <el-input v-model="queryForm.keyword" placeholder="请输入标签" clearable />
+          <el-input
+            v-model="queryForm.keyword"
+            placeholder="请输入标签"
+            clearable
+          />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">
+          <el-button
+            type="primary"
+            @click="handleSearch"
+          >
             <el-icon><Search /></el-icon>
             搜索
           </el-button>
@@ -35,36 +53,75 @@
 
       <!-- 数据表格 - 树形结构 -->
       <el-table
-        :data="tableData"
         v-loading="loading"
+        :data="tableData"
         border
         row-key="id"
         :tree-props="{ children: 'children' }"
         default-expand-all
       >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="label" label="字典标签" width="200" />
-        <el-table-column prop="value" label="字典值" width="150" />
-        <el-table-column prop="sortOrder" label="排序" width="80" />
-        <el-table-column label="状态" width="100">
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+        />
+        <el-table-column
+          prop="label"
+          label="字典标签"
+          width="200"
+        />
+        <el-table-column
+          prop="value"
+          label="字典值"
+          width="150"
+        />
+        <el-table-column
+          prop="sortOrder"
+          label="排序"
+          width="80"
+        />
+        <el-table-column
+          label="状态"
+          width="100"
+        >
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'">
               {{ row.status === 1 ? '正常' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column
+          label="操作"
+          width="280"
+          fixed="right"
+        >
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleAddChild(row)">
+            <el-button
+              type="primary"
+              size="small"
+              @click="handleAddChild(row)"
+            >
               新增子项
             </el-button>
-            <el-button type="warning" size="small" @click="handleEdit(row)">
+            <el-button
+              type="warning"
+              size="small"
+              @click="handleEdit(row)"
+            >
               编辑
             </el-button>
-            <el-button type="info" size="small" @click="handleStatus(row)">
+            <el-button
+              type="info"
+              size="small"
+              @click="handleStatus(row)"
+            >
               {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
-            <el-button type="danger" size="small" @click="handleDelete(row)">
+            <el-button
+              type="danger"
+              size="small"
+              @click="handleDelete(row)"
+            >
               删除
             </el-button>
           </template>
@@ -79,8 +136,16 @@
       width="500px"
       @close="handleDialogClose"
     >
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="父节点" prop="parentId">
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="100px"
+      >
+        <el-form-item
+          label="父节点"
+          prop="parentId"
+        >
           <el-tree-select
             v-model="form.parentId"
             :data="parentTreeData"
@@ -91,25 +156,56 @@
             :render-after-expand="false"
           />
         </el-form-item>
-        <el-form-item label="字典标签" prop="label">
-          <el-input v-model="form.label" placeholder="请输入字典标签" />
+        <el-form-item
+          label="字典标签"
+          prop="label"
+        >
+          <el-input
+            v-model="form.label"
+            placeholder="请输入字典标签"
+          />
         </el-form-item>
-        <el-form-item label="字典值" prop="value">
-          <el-input v-model="form.value" placeholder="请输入字典值" />
+        <el-form-item
+          label="字典值"
+          prop="value"
+        >
+          <el-input
+            v-model="form.value"
+            placeholder="请输入字典值"
+          />
         </el-form-item>
-        <el-form-item label="排序" prop="sortOrder">
-          <el-input-number v-model="form.sortOrder" :min="0" />
+        <el-form-item
+          label="排序"
+          prop="sortOrder"
+        >
+          <el-input-number
+            v-model="form.sortOrder"
+            :min="0"
+          />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
+        <el-form-item
+          label="状态"
+          prop="status"
+        >
           <el-radio-group v-model="form.status">
-            <el-radio :value="1">正常</el-radio>
-            <el-radio :value="0">禁用</el-radio>
+            <el-radio :value="1">
+              正常
+            </el-radio>
+            <el-radio :value="0">
+              禁用
+            </el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitLoading">
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="submitLoading"
+          @click="handleSubmit"
+        >
           确定
         </el-button>
       </template>
@@ -121,7 +217,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh, ArrowLeft } from '@element-plus/icons-vue'
-import { getDictItems, getDictItemTree, createDictItem, updateDictItem, deleteDictItem, updateDictItemStatus } from '@/api/dict'
+import { getDictItemTree, createDictItem, updateDictItem, deleteDictItem, updateDictItemStatus } from '@/api/dict'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -174,7 +270,7 @@ const getData = async () => {
   loading.value = true
   try {
     tableData.value = await getDictItemTree(dictId)
-  } catch (error) {
+  } catch {
     ElMessage.error('获取字典项树失败')
   } finally {
     loading.value = false
@@ -253,7 +349,7 @@ const handleSubmit = async () => {
     }
     dialogVisible.value = false
     getData()
-  } catch (error) {
+  } catch {
     ElMessage.error('操作失败')
   } finally {
     submitLoading.value = false
@@ -273,7 +369,7 @@ const handleStatus = async (row) => {
     await updateDictItemStatus(dictId, row.id, newStatus)
     ElMessage.success(`${action}成功`)
     getData()
-  } catch (error) {
+  } catch {
     // 取消操作
   }
 }
@@ -288,7 +384,7 @@ const handleDelete = async (row) => {
     await deleteDictItem(dictId, row.id)
     ElMessage.success('删除成功')
     getData()
-  } catch (error) {
+  } catch {
     // 取消操作
   }
 }

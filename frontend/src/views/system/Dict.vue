@@ -50,7 +50,7 @@ const getList = async () => {
     const data = await getDictList(queryParams)
     tableData.value = data.records || []
     total.value = data.total || 0
-  } catch (error) {
+  } catch {
     ElMessage.error('获取列表失败')
   } finally {
     loading.value = false
@@ -136,17 +136,6 @@ const handleDelete = async (row) => {
   }
 }
 
-// 更新状态
-const handleStatusChange = async (row) => {
-  try {
-    await updateDictStatus(row.id, row.status)
-    ElMessage.success('状态更新成功')
-  } catch (error) {
-    ElMessage.error('状态更新失败')
-    row.status = row.status === 1 ? 0 : 1
-  }
-}
-
 const handleStatus = async (row) => {
   const newStatus = row.status === 1 ? 0 : 1
   const action = newStatus === 1 ? '启用' : '禁用'
@@ -160,7 +149,7 @@ const handleStatus = async (row) => {
     await updateDictStatus(row.id, newStatus)
     ElMessage.success(`${action}成功`)
     getList()
-  } catch (error) {
+  } catch {
     // 取消操作
   }
 }
@@ -197,7 +186,10 @@ onMounted(() => {
       <template #header>
         <div class="card-header">
           <span>字典管理</span>
-          <el-button type="primary" @click="handleAdd">
+          <el-button
+            type="primary"
+            @click="handleAdd"
+          >
             <el-icon><Plus /></el-icon>
             新增字典
           </el-button>
@@ -205,7 +197,10 @@ onMounted(() => {
       </template>
 
       <!-- 搜索栏 -->
-      <el-form :inline="true" :model="queryParams">
+      <el-form
+        :inline="true"
+        :model="queryParams"
+      >
         <el-form-item label="关键字">
           <el-input
             v-model="queryParams.keyword"
@@ -215,7 +210,10 @@ onMounted(() => {
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">
+          <el-button
+            type="primary"
+            @click="handleSearch"
+          >
             <el-icon><Search /></el-icon>
             搜索
           </el-button>
@@ -233,19 +231,45 @@ onMounted(() => {
         border
         stripe
       >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="dictType" label="字典类型" width="150" />
-        <el-table-column prop="dictName" label="字典名称" width="150" />
-        <el-table-column prop="remark" label="备注" />
-        <el-table-column label="状态" width="100">
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+        />
+        <el-table-column
+          prop="dictType"
+          label="字典类型"
+          width="150"
+        />
+        <el-table-column
+          prop="dictName"
+          label="字典名称"
+          width="150"
+        />
+        <el-table-column
+          prop="remark"
+          label="备注"
+        />
+        <el-table-column
+          label="状态"
+          width="100"
+        >
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'">
               {{ row.status === 1 ? '正常' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="320" fixed="right">
+        <el-table-column
+          prop="createTime"
+          label="创建时间"
+          width="180"
+        />
+        <el-table-column
+          label="操作"
+          width="320"
+          fixed="right"
+        >
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -255,26 +279,26 @@ onMounted(() => {
               字典项
             </el-button>
             <el-button
+              v-auth="'dict:edit'"
               type="primary"
               size="small"
               @click="handleEdit(row)"
-              v-auth="'dict:edit'"
             >
               编辑
             </el-button>
             <el-button
+              v-auth="'dict:edit'"
               type="warning"
               size="small"
               @click="handleStatus(row)"
-              v-auth="'dict:edit'"
             >
               {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
             <el-button
+              v-auth="'dict:delete'"
               type="danger"
               size="small"
               @click="handleDelete(row)"
-              v-auth="'dict:delete'"
             >
               删除
             </el-button>
@@ -289,9 +313,9 @@ onMounted(() => {
         :total="total"
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
+        style="margin-top: 20px; justify-content: flex-end"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
-        style="margin-top: 20px; justify-content: flex-end"
       />
     </el-card>
 
@@ -307,14 +331,20 @@ onMounted(() => {
         :rules="rules"
         label-width="100px"
       >
-        <el-form-item label="字典类型" prop="dictType">
+        <el-form-item
+          label="字典类型"
+          prop="dictType"
+        >
           <el-input
             v-model="formData.dictType"
             placeholder="请输入字典类型"
             :disabled="!!formData.id"
           />
         </el-form-item>
-        <el-form-item label="字典名称" prop="dictName">
+        <el-form-item
+          label="字典名称"
+          prop="dictName"
+        >
           <el-input
             v-model="formData.dictName"
             placeholder="请输入字典名称"
@@ -322,8 +352,12 @@ onMounted(() => {
         </el-form-item>
         <el-form-item label="状态">
           <el-radio-group v-model="formData.status">
-            <el-radio :label="1">正常</el-radio>
-            <el-radio :label="0">禁用</el-radio>
+            <el-radio :label="1">
+              正常
+            </el-radio>
+            <el-radio :label="0">
+              禁用
+            </el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注">
@@ -335,8 +369,15 @@ onMounted(() => {
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          @click="handleSubmit"
+        >
+          确定
+        </el-button>
       </template>
     </el-dialog>
   </div>

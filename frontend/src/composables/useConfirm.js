@@ -1,3 +1,5 @@
+import { ElMessageBox } from 'element-plus'
+
 /**
  * 确认操作组合式函数
  * @param {Object} options - 配置选项

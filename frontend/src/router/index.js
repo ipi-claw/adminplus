@@ -89,7 +89,7 @@ router.beforeEach((to, from, next) => {
         userStore.logout()
         next('/login')
       }
-    } catch (error) {
+    } catch {
       userStore.logout()
       next('/login')
     }

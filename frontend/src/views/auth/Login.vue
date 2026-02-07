@@ -8,7 +8,12 @@
         </div>
       </template>
 
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="0">
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="0"
+      >
         <el-form-item prop="username">
           <el-input
             v-model="form.username"
@@ -79,7 +84,7 @@ const handleLogin = async () => {
     await userStore.login(form.username, form.password)
     ElMessage.success('登录成功')
     router.push('/')
-  } catch (error) {
+  } catch {
     // 错误已在 userStore 中处理
   } finally {
     loading.value = false

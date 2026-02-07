@@ -2,63 +2,114 @@
   <div class="dashboard">
     <el-row :gutter="20">
       <el-col :span="6">
-        <el-card shadow="hover" v-loading="loading">
+        <el-card
+          v-loading="loading"
+          shadow="hover"
+        >
           <div class="stat-card">
-            <div class="stat-icon" style="background: #409EFF">
-              <el-icon :size="40"><User /></el-icon>
+            <div
+              class="stat-icon"
+              style="background: #409EFF"
+            >
+              <el-icon :size="40">
+                <User />
+              </el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ stats.userCount.toLocaleString() }}</div>
-              <div class="stat-label">用户总数</div>
+              <div class="stat-value">
+                {{ stats.userCount.toLocaleString() }}
+              </div>
+              <div class="stat-label">
+                用户总数
+              </div>
             </div>
           </div>
         </el-card>
       </el-col>
 
       <el-col :span="6">
-        <el-card shadow="hover" v-loading="loading">
+        <el-card
+          v-loading="loading"
+          shadow="hover"
+        >
           <div class="stat-card">
-            <div class="stat-icon" style="background: #67C23A">
-              <el-icon :size="40"><UserFilled /></el-icon>
+            <div
+              class="stat-icon"
+              style="background: #67C23A"
+            >
+              <el-icon :size="40">
+                <UserFilled />
+              </el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ stats.roleCount.toLocaleString() }}</div>
-              <div class="stat-label">角色总数</div>
+              <div class="stat-value">
+                {{ stats.roleCount.toLocaleString() }}
+              </div>
+              <div class="stat-label">
+                角色总数
+              </div>
             </div>
           </div>
         </el-card>
       </el-col>
 
       <el-col :span="6">
-        <el-card shadow="hover" v-loading="loading">
+        <el-card
+          v-loading="loading"
+          shadow="hover"
+        >
           <div class="stat-card">
-            <div class="stat-icon" style="background: #E6A23C">
-              <el-icon :size="40"><Menu /></el-icon>
+            <div
+              class="stat-icon"
+              style="background: #E6A23C"
+            >
+              <el-icon :size="40">
+                <Menu />
+              </el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ stats.menuCount.toLocaleString() }}</div>
-              <div class="stat-label">菜单总数</div>
+              <div class="stat-value">
+                {{ stats.menuCount.toLocaleString() }}
+              </div>
+              <div class="stat-label">
+                菜单总数
+              </div>
             </div>
           </div>
         </el-card>
       </el-col>
 
       <el-col :span="6">
-        <el-card shadow="hover" v-loading="loading">
+        <el-card
+          v-loading="loading"
+          shadow="hover"
+        >
           <div class="stat-card">
-            <div class="stat-icon" style="background: #F56C6C">
-              <el-icon :size="40"><Document /></el-icon>
+            <div
+              class="stat-icon"
+              style="background: #F56C6C"
+            >
+              <el-icon :size="40">
+                <Document />
+              </el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ stats.logCount.toLocaleString() }}</div>
-              <div class="stat-label">日志总数</div>
+              <div class="stat-value">
+                {{ stats.logCount.toLocaleString() }}
+              </div>
+              <div class="stat-label">
+                日志总数
+              </div>
             </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-row :gutter="20" style="margin-top: 20px">
+    <el-row
+      :gutter="20"
+      style="margin-top: 20px"
+    >
       <el-col :span="24">
         <el-card>
           <template #header>
@@ -107,7 +158,7 @@ const fetchStats = async () => {
     loading.value = true
     const data = await getDashboardStats()
     stats.value = data
-  } catch (error) {
+  } catch {
     ElMessage.error('获取统计数据失败')
   } finally {
     loading.value = false

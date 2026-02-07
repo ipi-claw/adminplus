@@ -4,7 +4,10 @@
       <template #header>
         <div class="card-header">
           <span>菜单管理</span>
-          <el-button type="primary" @click="handleAdd">
+          <el-button
+            type="primary"
+            @click="handleAdd"
+          >
             <el-icon><Plus /></el-icon>
             新增菜单
           </el-button>
@@ -13,55 +16,108 @@
 
       <!-- 菜单树表格 -->
       <el-table
-        :data="tableData"
         v-loading="loading"
+        :data="tableData"
         border
         row-key="id"
         :tree-props="{ children: 'children' }"
         default-expand-all
       >
-        <el-table-column prop="name" label="菜单名称" width="200" />
-        <el-table-column label="类型" width="100">
+        <el-table-column
+          prop="name"
+          label="菜单名称"
+          width="200"
+        />
+        <el-table-column
+          label="类型"
+          width="100"
+        >
           <template #default="{ row }">
             <el-tag :type="getMenuTypeTag(row.type)">
               {{ getMenuTypeText(row.type) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="path" label="路由路径" />
-        <el-table-column prop="component" label="组件路径" />
-        <el-table-column prop="permKey" label="权限标识" width="150" />
-        <el-table-column prop="icon" label="图标" width="80">
+        <el-table-column
+          prop="path"
+          label="路由路径"
+        />
+        <el-table-column
+          prop="component"
+          label="组件路径"
+        />
+        <el-table-column
+          prop="permKey"
+          label="权限标识"
+          width="150"
+        />
+        <el-table-column
+          prop="icon"
+          label="图标"
+          width="80"
+        >
           <template #default="{ row }">
             <el-icon v-if="row.icon && isValidIcon(row.icon)">
               <component :is="row.icon" />
             </el-icon>
           </template>
         </el-table-column>
-        <el-table-column prop="sortOrder" label="排序" width="80" />
-        <el-table-column label="可见" width="80">
+        <el-table-column
+          prop="sortOrder"
+          label="排序"
+          width="80"
+        />
+        <el-table-column
+          label="可见"
+          width="80"
+        >
           <template #default="{ row }">
-            <el-tag :type="row.visible === VISIBLE.SHOW ? 'success' : 'info'" size="small">
+            <el-tag
+              :type="row.visible === VISIBLE.SHOW ? 'success' : 'info'"
+              size="small"
+            >
               {{ row.visible === VISIBLE.SHOW ? '显示' : '隐藏' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="80">
+        <el-table-column
+          label="状态"
+          width="80"
+        >
           <template #default="{ row }">
-            <el-tag :type="row.status === STATUS.ENABLED ? 'success' : 'danger'" size="small">
+            <el-tag
+              :type="row.status === STATUS.ENABLED ? 'success' : 'danger'"
+              size="small"
+            >
               {{ row.status === STATUS.ENABLED ? '正常' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="250" fixed="right">
+        <el-table-column
+          label="操作"
+          width="250"
+          fixed="right"
+        >
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleAddChild(row)">
+            <el-button
+              type="primary"
+              size="small"
+              @click="handleAddChild(row)"
+            >
               新增子菜单
             </el-button>
-            <el-button type="warning" size="small" @click="handleEdit(row)">
+            <el-button
+              type="warning"
+              size="small"
+              @click="handleEdit(row)"
+            >
               编辑
             </el-button>
-            <el-button type="danger" size="small" @click="handleDelete(row)">
+            <el-button
+              type="danger"
+              size="small"
+              @click="handleDelete(row)"
+            >
               删除
             </el-button>
           </template>
@@ -76,8 +132,16 @@
       width="600px"
       @close="handleDialogClose"
     >
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="上级菜单" prop="parentId">
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="100px"
+      >
+        <el-form-item
+          label="上级菜单"
+          prop="parentId"
+        >
           <el-tree-select
             v-model="form.parentId"
             :data="menuSelectData"
@@ -88,47 +152,116 @@
             :render-after-expand="false"
           />
         </el-form-item>
-        <el-form-item label="菜单类型" prop="type">
+        <el-form-item
+          label="菜单类型"
+          prop="type"
+        >
           <el-radio-group v-model="form.type">
-            <el-radio :value="MENU_TYPE.DIRECTORY">目录</el-radio>
-            <el-radio :value="MENU_TYPE.MENU">菜单</el-radio>
-            <el-radio :value="MENU_TYPE.BUTTON">按钮</el-radio>
+            <el-radio :value="MENU_TYPE.DIRECTORY">
+              目录
+            </el-radio>
+            <el-radio :value="MENU_TYPE.MENU">
+              菜单
+            </el-radio>
+            <el-radio :value="MENU_TYPE.BUTTON">
+              按钮
+            </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="菜单名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入菜单名称" />
+        <el-form-item
+          label="菜单名称"
+          prop="name"
+        >
+          <el-input
+            v-model="form.name"
+            placeholder="请输入菜单名称"
+          />
         </el-form-item>
-        <el-form-item label="路由路径" prop="path" v-if="form.type !== MENU_TYPE.BUTTON">
-          <el-input v-model="form.path" placeholder="请输入路由路径（如 /system/user）" />
+        <el-form-item
+          v-if="form.type !== MENU_TYPE.BUTTON"
+          label="路由路径"
+          prop="path"
+        >
+          <el-input
+            v-model="form.path"
+            placeholder="请输入路由路径（如 /system/user）"
+          />
         </el-form-item>
-        <el-form-item label="组件路径" prop="component" v-if="form.type === MENU_TYPE.MENU">
-          <el-input v-model="form.component" placeholder="请输入组件路径（如 system/User）" />
+        <el-form-item
+          v-if="form.type === MENU_TYPE.MENU"
+          label="组件路径"
+          prop="component"
+        >
+          <el-input
+            v-model="form.component"
+            placeholder="请输入组件路径（如 system/User）"
+          />
         </el-form-item>
-        <el-form-item label="权限标识" prop="permKey" v-if="form.type === MENU_TYPE.BUTTON">
-          <el-input v-model="form.permKey" placeholder="请输入权限标识（如 user:add）" />
+        <el-form-item
+          v-if="form.type === MENU_TYPE.BUTTON"
+          label="权限标识"
+          prop="permKey"
+        >
+          <el-input
+            v-model="form.permKey"
+            placeholder="请输入权限标识（如 user:add）"
+          />
         </el-form-item>
-        <el-form-item label="图标" prop="icon" v-if="form.type !== MENU_TYPE.BUTTON">
-          <el-input v-model="form.icon" placeholder="请输入图标名称" />
+        <el-form-item
+          v-if="form.type !== MENU_TYPE.BUTTON"
+          label="图标"
+          prop="icon"
+        >
+          <el-input
+            v-model="form.icon"
+            placeholder="请输入图标名称"
+          />
         </el-form-item>
-        <el-form-item label="排序" prop="sortOrder">
-          <el-input-number v-model="form.sortOrder" :min="0" />
+        <el-form-item
+          label="排序"
+          prop="sortOrder"
+        >
+          <el-input-number
+            v-model="form.sortOrder"
+            :min="0"
+          />
         </el-form-item>
-        <el-form-item label="是否可见" prop="visible">
+        <el-form-item
+          label="是否可见"
+          prop="visible"
+        >
           <el-radio-group v-model="form.visible">
-            <el-radio :value="VISIBLE.SHOWN">显示</el-radio>
-            <el-radio :value="VISIBLE.HIDDEN">隐藏</el-radio>
+            <el-radio :value="VISIBLE.SHOWN">
+              显示
+            </el-radio>
+            <el-radio :value="VISIBLE.HIDDEN">
+              隐藏
+            </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="状态" prop="status">
+        <el-form-item
+          label="状态"
+          prop="status"
+        >
           <el-radio-group v-model="form.status">
-            <el-radio :value="STATUS.ENABLED">正常</el-radio>
-            <el-radio :value="STATUS.DISABLED">禁用</el-radio>
+            <el-radio :value="STATUS.ENABLED">
+              正常
+            </el-radio>
+            <el-radio :value="STATUS.DISABLED">
+              禁用
+            </el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitLoading">
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="submitLoading"
+          @click="handleSubmit"
+        >
           确定
         </el-button>
       </template>
@@ -137,8 +270,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getMenuTree, createMenu, updateMenu, deleteMenu } from '@/api/menu'
 import { useForm } from '@/composables/useForm'
@@ -194,25 +327,6 @@ const confirmDelete = useConfirm({
   type: 'warning'
 })
 
-/**
- * 安全的图标白名单 - 防止 XSS 攻击
- */
-const ICON_WHITELIST = [
-  'Plus', 'Edit', 'Delete', 'Search', 'Refresh', 'Setting', 'User', 'Lock',
-  'Unlock', 'Document', 'Folder', 'Menu', 'House', 'Tools', 'Monitor',
-  'DataAnalysis', 'Management', 'Tickets', 'Files', 'DocumentCopy',
-  'Collection', 'Connection', 'Link', 'Promotion', 'Notification', 'Message'
-]
-
-/**
- * 验证图标是否在白名单中
- * @param {string} iconName - 图标名称
- * @returns {boolean} - 是否安全
- */
-const isIconSafe = (iconName) => {
-  return ICON_WHITELIST.includes(iconName)
-}
-
 const loading = ref(false)
 const submitLoading = ref(false)
 const tableData = ref([])
@@ -267,7 +381,7 @@ const getData = async () => {
   loading.value = true
   try {
     tableData.value = await getMenuTree()
-  } catch (error) {
+  } catch {
     ElMessage.error('获取菜单树失败')
   } finally {
     loading.value = false
@@ -322,7 +436,7 @@ const handleSubmit = async () => {
     }
     dialogVisible.value = false
     getData()
-  } catch (error) {
+  } catch {
     // 错误已在 validateForm 中处理
   } finally {
     submitLoading.value = false
@@ -335,7 +449,7 @@ const handleDelete = async (row) => {
     await deleteMenu(row.id)
     ElMessage.success('删除成功')
     getData()
-  } catch (error) {
+  } catch {
     // 用户取消操作
   }
 }

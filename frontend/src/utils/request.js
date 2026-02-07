@@ -1,13 +1,11 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
-import { login } from '@/api/auth'
 
 // 全局登录对话框控制
 let loginDialogVisible = false
 let loginDialogResolve = null
 let loginDialogReject = null
-let pendingRequest = null // 保存当前失败的请求
 
 // 显示登录对话框的方法
 export const showLoginDialog = () => {
@@ -25,7 +23,6 @@ export const hideLoginDialog = () => {
   loginDialogVisible = false
   loginDialogResolve = null
   loginDialogReject = null
-  pendingRequest = null
   // 触发自定义事件通知组件隐藏
   window.dispatchEvent(new CustomEvent('hide-login-dialog'))
 }
@@ -99,7 +96,7 @@ request.interceptors.response.use(
             if (originalConfig) {
               return request(originalConfig)
             }
-          } catch (err) {
+          } catch {
             // 用户取消登录或登录失败，跳转到登录页
             sessionStorage.removeItem('token')
             sessionStorage.removeItem('user')

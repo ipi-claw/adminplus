@@ -4,7 +4,10 @@
       <template #header>
         <div class="card-header">
           <span>角色管理</span>
-          <el-button type="primary" @click="handleAdd">
+          <el-button
+            type="primary"
+            @click="handleAdd"
+          >
             <el-icon><Plus /></el-icon>
             新增角色
           </el-button>
@@ -12,35 +15,80 @@
       </template>
 
       <!-- 数据表格 -->
-      <el-table :data="tableData" v-loading="loading" border>
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="code" label="角色编码" width="150" />
-        <el-table-column prop="name" label="角色名称" width="150" />
-        <el-table-column prop="description" label="描述" />
-        <el-table-column label="数据权限" width="120">
+      <el-table
+        v-loading="loading"
+        :data="tableData"
+        border
+      >
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+        />
+        <el-table-column
+          prop="code"
+          label="角色编码"
+          width="150"
+        />
+        <el-table-column
+          prop="name"
+          label="角色名称"
+          width="150"
+        />
+        <el-table-column
+          prop="description"
+          label="描述"
+        />
+        <el-table-column
+          label="数据权限"
+          width="120"
+        >
           <template #default="{ row }">
             <el-tag :type="getDataScopeType(row.dataScope)">
               {{ getDataScopeText(row.dataScope) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <el-table-column
+          label="状态"
+          width="100"
+        >
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'">
               {{ row.status === 1 ? '正常' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="sortOrder" label="排序" width="80" />
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column
+          prop="sortOrder"
+          label="排序"
+          width="80"
+        />
+        <el-table-column
+          label="操作"
+          width="280"
+          fixed="right"
+        >
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleEdit(row)">
+            <el-button
+              type="primary"
+              size="small"
+              @click="handleEdit(row)"
+            >
               编辑
             </el-button>
-            <el-button type="warning" size="small" @click="handleAssignMenu(row)">
+            <el-button
+              type="warning"
+              size="small"
+              @click="handleAssignMenu(row)"
+            >
               分配权限
             </el-button>
-            <el-button type="danger" size="small" @click="handleDelete(row)">
+            <el-button
+              type="danger"
+              size="small"
+              @click="handleDelete(row)"
+            >
               删除
             </el-button>
           </template>
@@ -55,37 +103,99 @@
       width="500px"
       @close="handleDialogClose"
     >
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="角色编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入角色编码（如 ROLE_ADMIN）" :disabled="isEdit" />
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="100px"
+      >
+        <el-form-item
+          label="角色编码"
+          prop="code"
+        >
+          <el-input
+            v-model="form.code"
+            placeholder="请输入角色编码（如 ROLE_ADMIN）"
+            :disabled="isEdit"
+          />
         </el-form-item>
-        <el-form-item label="角色名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入角色名称" />
+        <el-form-item
+          label="角色名称"
+          prop="name"
+        >
+          <el-input
+            v-model="form.name"
+            placeholder="请输入角色名称"
+          />
         </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input v-model="form.description" type="textarea" placeholder="请输入描述" />
+        <el-form-item
+          label="描述"
+          prop="description"
+        >
+          <el-input
+            v-model="form.description"
+            type="textarea"
+            placeholder="请输入描述"
+          />
         </el-form-item>
-        <el-form-item label="数据权限" prop="dataScope">
-          <el-select v-model="form.dataScope" placeholder="请选择数据权限">
-            <el-option label="全部数据" :value="1" />
-            <el-option label="本部门" :value="2" />
-            <el-option label="本部门及以下" :value="3" />
-            <el-option label="仅本人" :value="4" />
+        <el-form-item
+          label="数据权限"
+          prop="dataScope"
+        >
+          <el-select
+            v-model="form.dataScope"
+            placeholder="请选择数据权限"
+          >
+            <el-option
+              label="全部数据"
+              :value="1"
+            />
+            <el-option
+              label="本部门"
+              :value="2"
+            />
+            <el-option
+              label="本部门及以下"
+              :value="3"
+            />
+            <el-option
+              label="仅本人"
+              :value="4"
+            />
           </el-select>
         </el-form-item>
-        <el-form-item label="状态" prop="status">
+        <el-form-item
+          label="状态"
+          prop="status"
+        >
           <el-radio-group v-model="form.status">
-            <el-radio :value="1">正常</el-radio>
-            <el-radio :value="0">禁用</el-radio>
+            <el-radio :value="1">
+              正常
+            </el-radio>
+            <el-radio :value="0">
+              禁用
+            </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="排序" prop="sortOrder">
-          <el-input-number v-model="form.sortOrder" :min="0" />
+        <el-form-item
+          label="排序"
+          prop="sortOrder"
+        >
+          <el-input-number
+            v-model="form.sortOrder"
+            :min="0"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitLoading">
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="submitLoading"
+          @click="handleSubmit"
+        >
           确定
         </el-button>
       </template>
@@ -107,8 +217,14 @@
         default-expand-all
       />
       <template #footer>
-        <el-button @click="menuDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleMenuSubmit" :loading="menuSubmitLoading">
+        <el-button @click="menuDialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="menuSubmitLoading"
+          @click="handleMenuSubmit"
+        >
           确定
         </el-button>
       </template>
@@ -166,7 +282,7 @@ const getData = async () => {
   try {
     const data = await getRoleList()
     tableData.value = data.records
-  } catch (error) {
+  } catch {
     ElMessage.error('获取角色列表失败')
   } finally {
     loading.value = false
@@ -176,7 +292,7 @@ const getData = async () => {
 const getMenuData = async () => {
   try {
     menuTreeData.value = await getMenuTree()
-  } catch (error) {
+  } catch {
     ElMessage.error('获取菜单树失败')
   }
 }
@@ -221,7 +337,7 @@ const handleSubmit = async () => {
     }
     dialogVisible.value = false
     getData()
-  } catch (error) {
+  } catch {
     // 错误已在验证或 API 中处理
   } finally {
     submitLoading.value = false
@@ -239,7 +355,7 @@ const handleAssignMenu = async (row) => {
   try {
     const menuIds = await getRoleMenuIds(row.id)
     menuTreeRef.value?.setCheckedKeys(menuIds)
-  } catch (error) {
+  } catch {
     ElMessage.error('获取角色菜单失败')
   }
 }
@@ -258,7 +374,7 @@ const handleMenuSubmit = async () => {
     await assignMenus(currentRoleId.value, allCheckedKeys)
     ElMessage.success('分配权限成功')
     menuDialogVisible.value = false
-  } catch (error) {
+  } catch {
     ElMessage.error('分配权限失败')
   } finally {
     menuSubmitLoading.value = false
@@ -275,7 +391,7 @@ const handleDelete = async (row) => {
     await deleteRole(row.id)
     ElMessage.success('删除成功')
     getData()
-  } catch (error) {
+  } catch {
     // 取消操作
   }
 }

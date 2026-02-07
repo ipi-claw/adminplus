@@ -70,7 +70,7 @@ export function globalErrorHandler(error) {
  * @param {Object} app - Vue 应用实例
  */
 export function setupErrorHandler(app) {
-  app.config.errorHandler = (err, instance, info) => {
+  app.config.errorHandler = (err) => {
     globalErrorHandler(err)
   }
 
