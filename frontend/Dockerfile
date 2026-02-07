@@ -9,6 +9,9 @@ COPY package*.json ./
 # 安装依赖
 RUN npm install
 
+# 安装 terser（Vite v3+ 构建需要）
+RUN npm install --save-dev terser
+
 # 复制源代码
 COPY . .
 

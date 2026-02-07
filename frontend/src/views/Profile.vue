@@ -399,9 +399,9 @@ const loadUserInfo = async () => {
 const loadUserSettings = async () => {
   try {
     const data = await getSettings()
-    if (data) {
-      settingsForm.theme = data.theme || 'light'
-      settingsForm.language = data.language || 'zh-CN'
+    if (data && data.settings) {
+      settingsForm.theme = data.settings.theme || 'light'
+      settingsForm.language = data.settings.language || 'zh-CN'
     }
   } catch {
     // 如果获取失败，使用默认值
@@ -489,8 +489,10 @@ const handleSaveSettings = async () => {
     settingsLoading.value = true
 
     await updateSettings({
-      theme: settingsForm.theme,
-      language: settingsForm.language
+      settings: {
+        theme: settingsForm.theme,
+        language: settingsForm.language
+      }
     })
 
     ElMessage.success('设置保存成功')
@@ -558,7 +560,7 @@ const handleAvatarUpload = async () => {
     avatarLoading.value = true
 
     const formData = new FormData()
-    formData.append('avatar', selectedAvatar.value)
+    formData.append('file', selectedAvatar.value)
 
     await uploadAvatar(formData)
 

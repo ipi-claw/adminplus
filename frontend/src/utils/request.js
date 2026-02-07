@@ -161,7 +161,7 @@ request.interceptors.response.use(
             // 重试原始请求
             originalConfig.headers.Authorization = `Bearer ${newToken}`
             return request(originalConfig)
-          } catch (refreshError) {
+          } catch {
             isRefreshing = false
             refreshSubscribers = []
 
