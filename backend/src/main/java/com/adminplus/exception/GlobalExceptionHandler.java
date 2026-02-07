@@ -2,6 +2,7 @@ package com.adminplus.exception;
 
 import com.adminplus.utils.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -22,6 +23,16 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @Value("${app.env:dev}")
+    private String env;
+
+    /**
+     * 判断是否为生产环境
+     */
+    private boolean isProduction() {
+        return "prod".equalsIgnoreCase(env);
+    }
 
     /**
      * 业务异常
@@ -71,6 +82,8 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<?> handleException(Exception e) {
         log.error("系统异常", e);
-        return ApiResponse.fail(500, "系统异常: " + e.getMessage());
+        // 生产环境返回通用错误信息，避免泄露敏感信息
+        String message = isProduction() ? "系统异常，请稍后重试" : "系统异常: " + e.getMessage();
+        return ApiResponse.fail(500, message);
     }
 }

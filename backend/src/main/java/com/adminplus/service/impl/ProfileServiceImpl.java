@@ -8,6 +8,7 @@ import com.adminplus.exception.BizException;
 import com.adminplus.repository.ProfileRepository;
 import com.adminplus.security.CustomUserDetails;
 import com.adminplus.service.ProfileService;
+import com.adminplus.utils.PasswordUtils;
 import com.adminplus.utils.SecurityUtils;
 import com.adminplus.utils.XssUtils;
 import com.adminplus.vo.ProfileVO;
@@ -92,6 +93,10 @@ public class ProfileServiceImpl implements ProfileService {
         UserEntity user = profileRepository.findById(userId)
                 .orElseThrow(() -> new BizException("用户不存在"));
 
+        // 权限检查：确保用户只能修改自己的信息
+        // 这里已经通过 SecurityUtils.getCurrentUserId() 获取当前登录用户ID
+        // 只有当前登录用户可以修改自己的个人资料
+
         if (req.nickname() != null) {
             user.setNickname(XssUtils.escape(req.nickname()));
         }
@@ -128,9 +133,14 @@ public class ProfileServiceImpl implements ProfileService {
             throw new BizException("新密码和确认密码不一致");
         }
 
-        // 验证新密码不能与原密码相同
+        // 验证新密码不能与原密码���同
         if (Objects.equals(req.oldPassword(), req.newPassword())) {
             throw new BizException("新密码不能与原密码相同");
+        }
+
+        // 验证新密码强度
+        if (!PasswordUtils.isStrongPassword(req.newPassword())) {
+            throw new BizException(PasswordUtils.getPasswordStrengthHint(req.newPassword()));
         }
 
         Long userId = SecurityUtils.getCurrentUserId();
@@ -173,13 +183,26 @@ public class ProfileServiceImpl implements ProfileService {
                 throw new BizException("不支持的文件格式");
             }
 
-            // 生成唯一文件名
+            // 生成唯一文件名（使用 UUID 避免文件名冲突）
             String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            String filename = UUID.randomUUID() + extension;
+            String filename = UUID.randomUUID().toString() + extension;
 
-            // 按日期创建目录
+            // 按日期创建目录（使用相对路径，防止路径遍历）
             String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-            Path uploadPath = Paths.get("uploads", "avatars", datePath);
+
+            // 验证路径安全性
+            if (!XssUtils.isSafePath(datePath)) {
+                throw new BizException("路径包含非法字符");
+            }
+
+            // 使用固定的上传根目录，防止路径遍历
+            Path uploadRoot = Paths.get("uploads").toAbsolutePath().normalize();
+            Path uploadPath = uploadRoot.resolve("avatars").resolve(datePath).normalize();
+
+            // 确保路径在上传根目录内
+            if (!uploadPath.startsWith(uploadRoot)) {
+                throw new BizException("非法的文件路径");
+            }
 
             // 创建目录（如果不存在）
             if (!Files.exists(uploadPath)) {
@@ -187,10 +210,16 @@ public class ProfileServiceImpl implements ProfileService {
             }
 
             // 保存文件
-            Path filePath = uploadPath.resolve(filename);
+            Path filePath = uploadPath.resolve(filename).normalize();
+
+            // 再次验证文件路径
+            if (!filePath.startsWith(uploadPath)) {
+                throw new BizException("非法的文件路径");
+            }
+
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            // 返回访问URL
+            // 返回访问URL（相对路径）
             String fileUrl = "/uploads/avatars/" + datePath + "/" + filename;
             log.info("头像上传成功: {}", fileUrl);
 

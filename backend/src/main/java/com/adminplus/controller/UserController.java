@@ -24,7 +24,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/sys/users")
+@RequestMapping("/v1/sys/users")
 @RequiredArgsConstructor
 @Tag(name = "用户管理", description = "用户增删改查")
 public class UserController {

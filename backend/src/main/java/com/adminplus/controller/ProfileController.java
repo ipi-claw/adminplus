@@ -24,7 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Slf4j
 @RestController
-@RequestMapping("/profile")
+@RequestMapping("/v1/profile")
 @RequiredArgsConstructor
 @Tag(name = "个人中心", description = "个人资料、设置、密码管理")
 public class ProfileController {

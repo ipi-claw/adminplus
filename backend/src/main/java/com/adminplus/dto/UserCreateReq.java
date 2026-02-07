@@ -1,5 +1,6 @@
 package com.adminplus.dto;
 
+import com.adminplus.utils.PasswordUtils;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -17,7 +18,7 @@ public record UserCreateReq(
         String username,
 
         @NotBlank(message = "密码不能为空")
-        @Size(min = 6, max = 20, message = "密码长度必须在6-20之间")
+        @Size(min = 8, max = 20, message = "密码长度必须在8-20之间")
         String password,
 
         @Size(max = 50, message = "昵称长度不能超过50")
@@ -33,4 +34,10 @@ public record UserCreateReq(
         @Size(max = 255, message = "头像URL长度不能超过255")
         String avatar
 ) {
+    public UserCreateReq {
+        // 自定义验证：密码强度
+        if (password != null && !PasswordUtils.isStrongPassword(password)) {
+            throw new IllegalArgumentException(PasswordUtils.getPasswordStrengthHint(password));
+        }
+    }
 }

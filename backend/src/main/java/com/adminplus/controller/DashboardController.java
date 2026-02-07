@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
-@RequestMapping("/sys/dashboard")
+@RequestMapping("/v1/sys/dashboard")
 @RequiredArgsConstructor
 @Tag(name = "Dashboard管理", description = "统计数据接口")
 public class DashboardController {

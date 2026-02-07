@@ -1,5 +1,6 @@
 package com.adminplus.service.impl;
 
+import com.adminplus.constants.OperationType;
 import com.adminplus.dto.UserCreateReq;
 import com.adminplus.dto.UserUpdateReq;
 import com.adminplus.entity.RoleEntity;
@@ -9,7 +10,9 @@ import com.adminplus.exception.BizException;
 import com.adminplus.repository.RoleRepository;
 import com.adminplus.repository.UserRepository;
 import com.adminplus.repository.UserRoleRepository;
+import com.adminplus.service.LogService;
 import com.adminplus.service.UserService;
+import com.adminplus.utils.PasswordUtils;
 import com.adminplus.utils.XssUtils;
 import com.adminplus.vo.UserVO;
 import com.adminplus.vo.PageResultVO;
@@ -17,10 +20,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +43,7 @@ public class UserServiceImpl implements UserService {
     private final UserRoleRepository userRoleRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LogService logService;
 
     @Override
     @Transactional(readOnly = true)
@@ -129,6 +135,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Async
+    public CompletableFuture<PageResultVO<UserVO>> getUserListAsync(Integer page, Integer size, String keyword) {
+        log.info("使用虚拟线程异步查询用户列表");
+        return CompletableFuture.completedFuture(getUserList(page, size, keyword));
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<UserVO> getUserByIdAsync(Long id) {
+        log.info("使用虚拟线程异步查询用户: {}", id);
+        return CompletableFuture.completedFuture(getUserById(id));
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public UserEntity getUserByUsername(String username) {
         return userRepository.findByUsername(username)
@@ -141,6 +161,11 @@ public class UserServiceImpl implements UserService {
         // 检查用户名是否已存在
         if (userRepository.existsByUsername(req.username())) {
             throw new BizException("用户名已存在");
+        }
+
+        // 验证密码强度
+        if (!PasswordUtils.isStrongPassword(req.password())) {
+            throw new BizException(PasswordUtils.getPasswordStrengthHint(req.password()));
         }
 
         var user = new UserEntity();
@@ -214,6 +239,9 @@ public class UserServiceImpl implements UserService {
 
         user.setDeleted(true);
         userRepository.save(user);
+
+        // 记录审计日志
+        logService.log("用户管理", OperationType.DELETE, "删除用户: " + user.getUsername());
     }
 
     @Override
@@ -234,6 +262,9 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+
+        // 记录审计日志
+        logService.log("用户管理", OperationType.UPDATE, "重置密码: " + user.getUsername());
     }
 
     @Override

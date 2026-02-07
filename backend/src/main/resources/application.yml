@@ -19,9 +19,9 @@ spring:
 
   # 数据源配置
   datasource:
-    url: jdbc:postgresql://postgres:5432/adminplus
-    username: postgres
-    password: postgres
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/adminplus}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
   # SQL 初始化配置

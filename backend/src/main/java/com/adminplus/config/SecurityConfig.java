@@ -1,5 +1,6 @@
 package com.adminplus.config;
 
+import com.adminplus.filter.TokenBlacklistFilter;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -10,6 +11,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,6 +27,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Spring Security 配置
@@ -39,6 +42,14 @@ public class SecurityConfig {
     @Value("${jwt.secret:}")
     private String jwtSecret;
 
+    private final TokenBlacklistFilter tokenBlacklistFilter;
+    private final Environment env;
+
+    public SecurityConfig(TokenBlacklistFilter tokenBlacklistFilter, Environment env) {
+        this.tokenBlacklistFilter = tokenBlacklistFilter;
+        this.env = env;
+    }
+
     /**
      * 密钥生成（开发环境）
      * 生产环境应从环境变量或配置文件读取
@@ -52,6 +63,11 @@ public class SecurityConfig {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to parse JWT secret from environment", e);
             }
+        }
+
+        // 生产环境警告
+        if (isProduction()) {
+            throw new RuntimeException("生产环境必须配置 JWT 密钥（环境变量 JWT_SECRET）");
         }
 
         // 开发环境生成临时密钥
@@ -121,12 +137,35 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/register", "/actuator/**", "/uploads/**").permitAll()
+                        // 公开端点
+                        .requestMatchers("/auth/login", "/auth/register", "/uploads/**", "/captcha/**").permitAll()
+                        // Actuator - 根据环境限制访问
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/**").denyAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 )
+                .addFilterBefore(tokenBlacklistFilter, UsernamePasswordAuthenticationFilter.class)
+                // 添加安全头
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
+                        .frameOptions(frame -> frame.sameOrigin())
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                                .preload(true)
+                        )
+                )
                 .build();
+    }
+
+    /**
+     * 判断是否为生产环境
+     */
+    private boolean isProduction() {
+        String env = this.env.getProperty("app.env", "dev");
+        return "prod".equalsIgnoreCase(env) || "production".equalsIgnoreCase(env);
     }
 }

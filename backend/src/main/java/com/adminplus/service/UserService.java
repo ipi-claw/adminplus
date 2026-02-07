@@ -7,6 +7,7 @@ import com.adminplus.vo.UserVO;
 import com.adminplus.vo.PageResultVO;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 用户服务接口
@@ -22,9 +23,19 @@ public interface UserService {
     PageResultVO<UserVO> getUserList(Integer page, Integer size, String keyword);
 
     /**
+     * 异步分页查询用户列表（使用虚拟线程）
+     */
+    CompletableFuture<PageResultVO<UserVO>> getUserListAsync(Integer page, Integer size, String keyword);
+
+    /**
      * 根据ID查询用户
      */
     UserVO getUserById(Long id);
+
+    /**
+     * 异步根据ID查询用户（使用虚拟线程）
+     */
+    CompletableFuture<UserVO> getUserByIdAsync(Long id);
 
     /**
      * 根据用户名查询用户

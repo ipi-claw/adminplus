@@ -2,6 +2,7 @@ package com.adminplus.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -14,6 +15,7 @@ import java.time.Instant;
  * @since 2026-02-06
  */
 @Data
+@EqualsAndHashCode(callSuper = false)
 @MappedSuperclass
 public abstract class BaseEntity {
 

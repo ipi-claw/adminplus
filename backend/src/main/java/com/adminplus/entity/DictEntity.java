@@ -2,6 +2,8 @@ package com.adminplus.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 字典实体
@@ -9,7 +11,8 @@ import lombok.Data;
  * @author AdminPlus
  * @since 2026-02-06
  */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "sys_dict")
 public class DictEntity extends BaseEntity {

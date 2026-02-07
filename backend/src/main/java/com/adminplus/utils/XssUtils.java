@@ -2,6 +2,8 @@ package com.adminplus.utils;
 
 import org.springframework.web.util.HtmlUtils;
 
+import java.util.regex.Pattern;
+
 /**
  * XSS 防护工具类
  *
@@ -9,6 +11,24 @@ import org.springframework.web.util.HtmlUtils;
  * @since 2026-02-07
  */
 public class XssUtils {
+
+    // 危险的 JavaScript 事件
+    private static final Pattern SCRIPT_EVENT_PATTERN = Pattern.compile(
+            "on\\w+\\s*=",
+            Pattern.CASE_INSENSITIVE
+    );
+
+    // 危险的 HTML 标签
+    private static final Pattern DANGEROUS_TAG_PATTERN = Pattern.compile(
+            "<(script|iframe|object|embed|form|input|button|meta|link|style)",
+            Pattern.CASE_INSENSITIVE
+    );
+
+    // javascript: 协议
+    private static final Pattern JS_PROTOCOL_PATTERN = Pattern.compile(
+            "javascript:",
+            Pattern.CASE_INSENSITIVE
+    );
 
     /**
      * 过滤 HTML 标签，防止 XSS 攻击
@@ -21,6 +41,29 @@ public class XssUtils {
             return null;
         }
         return HtmlUtils.htmlEscape(input);
+    }
+
+    /**
+     * 清理输入，移除危险的 HTML/JavaScript
+     *
+     * @param input 输入字符串
+     * @return 清理后的字符串
+     */
+    public static String sanitize(String input) {
+        if (input == null) {
+            return null;
+        }
+
+        // 移除危险的 HTML 标签
+        String sanitized = DANGEROUS_TAG_PATTERN.matcher(input).replaceAll("");
+
+        // 移除 JavaScript 事件
+        sanitized = SCRIPT_EVENT_PATTERN.matcher(sanitized).replaceAll("");
+
+        // 移除 javascript: 协议
+        sanitized = JS_PROTOCOL_PATTERN.matcher(sanitized).replaceAll("");
+
+        return sanitized.trim();
     }
 
     /**
@@ -55,10 +98,18 @@ public class XssUtils {
         String sanitized = filename.replaceAll("\\.\\./", "")
                 .replaceAll("\\.\\\\", "")
                 .replaceAll("/", "")
-                .replaceAll("\\\\", "");
+                .replaceAll("\\\\", "")
+                .replaceAll("\\x00", "")
+                .replaceAll("\\r", "")
+                .replaceAll("\\n", "");
 
         // 只保留字母、数字、下划线、点和连字符
         sanitized = sanitized.replaceAll("[^a-zA-Z0-9._-]", "");
+
+        // 限制文件名长度
+        if (sanitized.length() > 255) {
+            sanitized = sanitized.substring(0, 255);
+        }
 
         return sanitized;
     }
@@ -87,5 +138,29 @@ public class XssUtils {
             }
         }
         return false;
+    }
+
+    /**
+     * 验证路径是否安全（防止路径遍历）
+     *
+     * @param path 路径
+     * @return 是否安全
+     */
+    public static boolean isSafePath(String path) {
+        if (path == null || path.isEmpty()) {
+            return false;
+        }
+
+        // 检查路径遍历字符
+        if (path.contains("..") || path.contains("~")) {
+            return false;
+        }
+
+        // 检查绝对路径
+        if (path.startsWith("/") || path.contains(":")) {
+            return false;
+        }
+
+        return true;
     }
 }
