@@ -85,6 +85,16 @@ export const getDictItems = (dictId) => {
 }
 
 /**
+ * 获取字典项树形结构
+ */
+export const getDictItemTree = (dictId) => {
+  return request({
+    url: `/sys/dicts/${dictId}/items/tree`,
+    method: 'get'
+  })
+}
+
+/**
  * 根据字典类型查询字典项
  */
 export const getDictItemsByType = (dictType) => {
@@ -108,9 +118,9 @@ export const createDictItem = (dictId, data) => {
 /**
  * 更新字典项
  */
-export const updateDictItem = (id, data) => {
+export const updateDictItem = (dictId, id, data) => {
   return request({
-    url: `/sys/dicts/items/${id}`,
+    url: `/sys/dicts/${dictId}/items/${id}`,
     method: 'put',
     data
   })
@@ -119,9 +129,9 @@ export const updateDictItem = (id, data) => {
 /**
  * 删除字典项
  */
-export const deleteDictItem = (id) => {
+export const deleteDictItem = (dictId, id) => {
   return request({
-    url: `/sys/dicts/items/${id}`,
+    url: `/sys/dicts/${dictId}/items/${id}`,
     method: 'delete'
   })
 }
@@ -129,9 +139,9 @@ export const deleteDictItem = (id) => {
 /**
  * 更新字典项状态
  */
-export const updateDictItemStatus = (id, status) => {
+export const updateDictItemStatus = (dictId, id, status) => {
   return request({
-    url: `/sys/dicts/items/${id}/status`,
+    url: `/sys/dicts/${dictId}/items/${id}/status`,
     method: 'put',
     params: { status }
   })

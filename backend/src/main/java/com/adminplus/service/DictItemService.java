@@ -20,12 +20,17 @@ public interface DictItemService {
     List<DictItemVO> getDictItemsByDictId(Long dictId);
 
     /**
+     * 根据字典ID查询字典项树形结构
+     */
+    List<DictItemVO> getDictItemTreeByDictId(Long dictId);
+
+    /**
      * 根据字典类型查询字典项列表（仅启用状态的）
      */
     List<DictItemVO> getDictItemsByType(String dictType);
 
     /**
-     * 根据ID查询字典项
+     * 根据ID查询字���项
      */
     DictItemVO getDictItemById(Long id);
 

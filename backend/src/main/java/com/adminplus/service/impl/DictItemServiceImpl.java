@@ -16,7 +16,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 字典项服务实现
@@ -39,6 +42,14 @@ public class DictItemServiceImpl implements DictItemService {
         return dictItemRepository.findByDictIdOrderBySortOrderAsc(dictId).stream()
                 .map(this::toVO)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "dictItem", key = "'tree:dictId:' + #dictId")
+    public List<DictItemVO> getDictItemTreeByDictId(Long dictId) {
+        List<DictItemEntity> items = dictItemRepository.findByDictIdOrderBySortOrderAsc(dictId);
+        return buildTree(items, null);
     }
 
     @Override
@@ -73,8 +84,18 @@ public class DictItemServiceImpl implements DictItemService {
         DictEntity dict = dictRepository.findById(req.dictId())
                 .orElseThrow(() -> new BizException("字典不存在"));
 
+        // 验证父节点是否存在且属于同一字典
+        if (req.parentId() != null) {
+            DictItemEntity parent = dictItemRepository.findById(req.parentId())
+                    .orElseThrow(() -> new BizException("父节点不存在"));
+            if (!parent.getDictId().equals(req.dictId())) {
+                throw new BizException("父节点不属于当前字典");
+            }
+        }
+
         DictItemEntity item = new DictItemEntity();
         item.setDictId(req.dictId());
+        item.setParentId(req.parentId());
         item.setLabel(req.label());
         item.setValue(req.value());
         item.setSortOrder(req.sortOrder() != null ? req.sortOrder() : 0);
@@ -96,6 +117,20 @@ public class DictItemServiceImpl implements DictItemService {
         DictEntity dict = dictRepository.findById(item.getDictId())
                 .orElseThrow(() -> new BizException("字典不存在"));
 
+        // 验证父节点是否存在且属于同一字典
+        if (req.parentId() != null && !req.parentId().equals(item.getId())) {
+            DictItemEntity parent = dictItemRepository.findById(req.parentId())
+                    .orElseThrow(() -> new BizException("父节点不存在"));
+            if (!parent.getDictId().equals(item.getDictId())) {
+                throw new BizException("父节点不属于当前字典");
+            }
+            // 防止循环引用
+            if (isCircularReference(req.parentId(), id, item.getDictId())) {
+                throw new BizException("不能将父节点设置为自己的子节点");
+            }
+        }
+
+        item.setParentId(req.parentId());
         item.setLabel(req.label());
         item.setValue(req.value());
         item.setSortOrder(req.sortOrder() != null ? req.sortOrder() : item.getSortOrder());
@@ -135,11 +170,13 @@ public class DictItemServiceImpl implements DictItemService {
                 item.getId(),
                 item.getDictId(),
                 null,
+                item.getParentId(),
                 item.getLabel(),
                 item.getValue(),
                 item.getSortOrder(),
                 item.getStatus(),
                 item.getRemark(),
+                null,
                 item.getCreateTime(),
                 item.getUpdateTime()
         );
@@ -150,13 +187,97 @@ public class DictItemServiceImpl implements DictItemService {
                 item.getId(),
                 item.getDictId(),
                 dictType,
+                item.getParentId(),
                 item.getLabel(),
                 item.getValue(),
                 item.getSortOrder(),
                 item.getStatus(),
                 item.getRemark(),
+                null,
                 item.getCreateTime(),
                 item.getUpdateTime()
         );
+    }
+
+    /**
+     * 构建树形结构
+     */
+    private List<DictItemVO> buildTree(List<DictItemEntity> items, Long parentId) {
+        Map<Long, List<DictItemEntity>> childrenMap = items.stream()
+                .filter(item -> (parentId == null && item.getParentId() == null) ||
+                                (parentId != null && parentId.equals(item.getParentId())))
+                .collect(Collectors.groupingBy(item -> item.getParentId() == null ? 0L : item.getParentId()));
+
+        List<DictItemVO> result = new ArrayList<>();
+        for (DictItemEntity item : items) {
+            if ((parentId == null && item.getParentId() == null) ||
+                (parentId != null && parentId.equals(item.getParentId()))) {
+                continue;
+            }
+        }
+
+        // 获取根节点
+        List<DictItemEntity> roots = items.stream()
+                .filter(item -> item.getParentId() == null)
+                .sorted((a, b) -> a.getSortOrder().compareTo(b.getSortOrder()))
+                .toList();
+
+        for (DictItemEntity root : roots) {
+            result.add(buildTreeNode(root, items));
+        }
+
+        return result;
+    }
+
+    /**
+     * 构建树节点（递归）
+     */
+    private DictItemVO buildTreeNode(DictItemEntity parent, List<DictItemEntity> allItems) {
+        List<DictItemEntity> children = allItems.stream()
+                .filter(item -> parent.getId().equals(item.getParentId()))
+                .sorted((a, b) -> a.getSortOrder().compareTo(b.getSortOrder()))
+                .toList();
+
+        List<DictItemVO> childVOs = children.stream()
+                .map(child -> buildTreeNode(child, allItems))
+                .toList();
+
+        return new DictItemVO(
+                parent.getId(),
+                parent.getDictId(),
+                null,
+                parent.getParentId(),
+                parent.getLabel(),
+                parent.getValue(),
+                parent.getSortOrder(),
+                parent.getStatus(),
+                parent.getRemark(),
+                childVOs.isEmpty() ? null : childVOs,
+                parent.getCreateTime(),
+                parent.getUpdateTime()
+        );
+    }
+
+    /**
+     * 检查是否存在循环引用
+     */
+    private boolean isCircularReference(Long newParentId, Long currentId, Long dictId) {
+        if (newParentId == null) {
+            return false;
+        }
+
+        Long currentParentId = newParentId;
+        int maxDepth = 100; // 防止无限循环
+        while (currentParentId != null && maxDepth-- > 0) {
+            if (currentParentId.equals(currentId)) {
+                return true;
+            }
+            DictItemEntity parent = dictItemRepository.findById(currentParentId).orElse(null);
+            if (parent == null || !parent.getDictId().equals(dictId)) {
+                break;
+            }
+            currentParentId = parent.getParentId();
+        }
+        return false;
     }
 }

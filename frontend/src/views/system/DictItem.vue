@@ -33,10 +33,17 @@
         </el-form-item>
       </el-form>
 
-      <!-- 数据表格 -->
-      <el-table :data="tableData" v-loading="loading" border>
+      <!-- 数据表格 - 树形结构 -->
+      <el-table
+        :data="tableData"
+        v-loading="loading"
+        border
+        row-key="id"
+        :tree-props="{ children: 'children' }"
+        default-expand-all
+      >
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="label" label="字典标签" width="150" />
+        <el-table-column prop="label" label="字典标签" width="200" />
         <el-table-column prop="value" label="字典值" width="150" />
         <el-table-column prop="sortOrder" label="排序" width="80" />
         <el-table-column label="状态" width="100">
@@ -46,12 +53,15 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleEdit(row)">
+            <el-button type="primary" size="small" @click="handleAddChild(row)">
+              新增子项
+            </el-button>
+            <el-button type="warning" size="small" @click="handleEdit(row)">
               编辑
             </el-button>
-            <el-button type="warning" size="small" @click="handleStatus(row)">
+            <el-button type="info" size="small" @click="handleStatus(row)">
               {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
             <el-button type="danger" size="small" @click="handleDelete(row)">
@@ -60,18 +70,6 @@
           </template>
         </el-table-column>
       </el-table>
-
-      <!-- 分页 -->
-      <el-pagination
-        v-model:current-page="queryForm.page"
-        v-model:page-size="queryForm.size"
-        :total="total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="getData"
-        @current-change="getData"
-        style="margin-top: 20px; justify-content: flex-end"
-      />
     </el-card>
 
     <!-- 新增/编辑对话框 -->
@@ -82,6 +80,17 @@
       @close="handleDialogClose"
     >
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="父节点" prop="parentId">
+          <el-tree-select
+            v-model="form.parentId"
+            :data="parentTreeData"
+            :props="{ label: 'label', value: 'id' }"
+            placeholder="请选择父节点（不选则为顶级节点）"
+            clearable
+            check-strictly
+            :render-after-expand="false"
+          />
+        </el-form-item>
         <el-form-item label="字典标签" prop="label">
           <el-input v-model="form.label" placeholder="请输入字典标签" />
         </el-form-item>
@@ -109,10 +118,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh, ArrowLeft } from '@element-plus/icons-vue'
-import { getDictItems, createDictItem, updateDictItem, deleteDictItem, updateDictItemStatus } from '@/api/dict'
+import { getDictItems, getDictItemTree, createDictItem, updateDictItem, deleteDictItem, updateDictItemStatus } from '@/api/dict'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -126,17 +135,15 @@ const dialogVisible = ref(false)
 const dialogTitle = ref('新增字典项')
 const isEdit = ref(false)
 const tableData = ref([])
-const total = ref(0)
 
 const queryForm = reactive({
-  page: 1,
-  size: 10,
   keyword: ''
 })
 
 const formRef = ref()
 const form = reactive({
   id: null,
+  parentId: null,
   label: '',
   value: '',
   sortOrder: 0,
@@ -148,27 +155,39 @@ const rules = {
   value: [{ required: true, message: '请输入字典值', trigger: 'blur' }]
 }
 
+// 用于选择的父节点树（不包含当前编辑的节点及其子节点）
+const parentTreeData = computed(() => {
+  return buildParentTreeData(tableData.value, isEdit.value ? form.id : null)
+})
+
+const buildParentTreeData = (items, excludeId) => {
+  return items
+    .filter(item => item.id !== excludeId)
+    .map(item => ({
+      id: item.id,
+      label: item.label,
+      children: item.children ? buildParentTreeData(item.children, excludeId) : undefined
+    }))
+}
+
 const getData = async () => {
   loading.value = true
   try {
-    const data = await getDictItems(dictId)
-    tableData.value = data.records || data
-    total.value = data.total || 0
+    tableData.value = await getDictItemTree(dictId)
   } catch (error) {
-    ElMessage.error('获取字典项列表失败')
+    ElMessage.error('获取字典项树失败')
   } finally {
     loading.value = false
   }
 }
 
 const handleSearch = () => {
-  queryForm.page = 1
-  getData()
+  // 树形结构暂不支持搜索过滤，可以提示用户
+  ElMessage.info('树形结构暂不支持搜索，请使用列表视图')
 }
 
 const handleReset = () => {
   queryForm.keyword = ''
-  queryForm.page = 1
   getData()
 }
 
@@ -182,6 +201,14 @@ const handleAdd = () => {
   dialogVisible.value = true
 }
 
+const handleAddChild = (row) => {
+  isEdit.value = false
+  dialogTitle.value = '新增子字典项'
+  resetForm()
+  form.parentId = row.id
+  dialogVisible.value = true
+}
+
 const handleEdit = (row) => {
   isEdit.value = true
   dialogTitle.value = '编辑字典项'
@@ -191,8 +218,13 @@ const handleEdit = (row) => {
 
 const handleDialogClose = () => {
   formRef.value?.resetFields()
+  resetForm()
+}
+
+const resetForm = () => {
   Object.assign(form, {
     id: null,
+    parentId: null,
     label: '',
     value: '',
     sortOrder: 0,
@@ -205,11 +237,18 @@ const handleSubmit = async () => {
 
   submitLoading.value = true
   try {
+    const submitData = { ...form }
+    if (!isEdit.value) {
+      submitData.dictId = dictId
+    }
+    delete submitData.id
+    delete submitData.children
+
     if (isEdit.value) {
-      await updateDictItem(form.id, form)
+      await updateDictItem(dictId, form.id, submitData)
       ElMessage.success('更新成功')
     } else {
-      await createDictItem(dictId, form)
+      await createDictItem(submitData)
       ElMessage.success('创建成功')
     }
     dialogVisible.value = false
@@ -231,7 +270,7 @@ const handleStatus = async (row) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await updateDictItemStatus(row.id, newStatus)
+    await updateDictItemStatus(dictId, row.id, newStatus)
     ElMessage.success(`${action}成功`)
     getData()
   } catch (error) {
@@ -246,7 +285,7 @@ const handleDelete = async (row) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await deleteDictItem(row.id)
+    await deleteDictItem(dictId, row.id)
     ElMessage.success('删除成功')
     getData()
   } catch (error) {

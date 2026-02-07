@@ -42,6 +42,14 @@ public class DictItemController {
         ));
     }
 
+    @GetMapping("/tree")
+    @Operation(summary = "查询字典项树形结构")
+    @PreAuthorize("hasAuthority('dictitem:list')")
+    public ApiResponse<List<DictItemVO>> getDictItemTree(@PathVariable Long dictId) {
+        List<DictItemVO> tree = dictItemService.getDictItemTreeByDictId(dictId);
+        return ApiResponse.ok(tree);
+    }
+
     @GetMapping("/type/{dictType}")
     @Operation(summary = "根据字典类型查询字典项")
     @PreAuthorize("hasAuthority('dictitem:query')")

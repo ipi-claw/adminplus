@@ -23,6 +23,12 @@ public class DictItemEntity extends BaseEntity {
     private Long dictId;
 
     /**
+     * 父节点ID
+     */
+    @Column(name = "parent_id")
+    private Long parentId;
+
+    /**
      * 字典标签
      */
     @Column(name = "label", nullable = false, length = 100)
