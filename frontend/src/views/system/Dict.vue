@@ -244,7 +244,7 @@ onMounted(() => {
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="320" fixed="right">
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -257,7 +257,6 @@ onMounted(() => {
               type="primary"
               size="small"
               @click="handleEdit(row)"
-              v-auth="'dict:edit'"
             >
               编辑
             </el-button>
@@ -265,7 +264,6 @@ onMounted(() => {
               type="warning"
               size="small"
               @click="handleStatus(row)"
-              v-auth="'dict:edit'"
             >
               {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
@@ -273,7 +271,6 @@ onMounted(() => {
               type="danger"
               size="small"
               @click="handleDelete(row)"
-              v-auth="'dict:delete'"
             >
               删除
             </el-button>
