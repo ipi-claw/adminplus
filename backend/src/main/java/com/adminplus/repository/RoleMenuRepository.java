@@ -2,6 +2,8 @@ package com.adminplus.repository;
 
 import com.adminplus.entity.RoleMenuEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,12 +20,14 @@ public interface RoleMenuRepository extends JpaRepository<RoleMenuEntity, Long> 
     /**
      * 根据角色ID查询菜单ID列表
      */
-    List<Long> findMenuIdByRoleId(Long roleId);
+    @Query("SELECT rm.menuId FROM RoleMenuEntity rm WHERE rm.roleId = :roleId")
+    List<Long> findMenuIdByRoleId(@Param("roleId") Long roleId);
 
     /**
      * 根据菜单ID查询角色ID列表
      */
-    List<Long> findRoleIdByMenuId(Long menuId);
+    @Query("SELECT rm.roleId FROM RoleMenuEntity rm WHERE rm.menuId = :menuId")
+    List<Long> findRoleIdByMenuId(@Param("menuId") Long menuId);
 
     /**
      * 删除角色的所有菜单
