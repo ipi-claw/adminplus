@@ -4,6 +4,7 @@ import com.adminplus.dto.UserCreateReq;
 import com.adminplus.dto.UserUpdateReq;
 import com.adminplus.entity.UserEntity;
 import com.adminplus.vo.UserVO;
+import com.adminplus.vo.PageResultVO;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public interface UserService {
     /**
      * 分页查询用户列表
      */
-    List<UserVO> getUserList(Integer page, Integer size, String keyword);
+    PageResultVO<UserVO> getUserList(Integer page, Integer size, String keyword);
 
     /**
      * 根据ID查询用户

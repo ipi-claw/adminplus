@@ -9,6 +9,7 @@ import com.adminplus.repository.DictRepository;
 import com.adminplus.service.DictService;
 import com.adminplus.vo.DictItemVO;
 import com.adminplus.vo.DictVO;
+import com.adminplus.vo.PageResultVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -40,7 +41,7 @@ public class DictServiceImpl implements DictService {
     @Override
     @Transactional(readOnly = true)
     // @Cacheable(value = "dict", key = "'list:' + #page + ':' + #size + ':' + (#keyword != null ? #keyword : '')")
-    public List<DictVO> getDictList(Integer page, Integer size, String keyword) {
+    public PageResultVO<DictVO> getDictList(Integer page, Integer size, String keyword) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createTime").descending());
 
         Specification<DictEntity> spec = (root, query, cb) -> {
@@ -57,9 +58,17 @@ public class DictServiceImpl implements DictService {
             return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
         };
 
-        return dictRepository.findAll(spec, pageable).getContent().stream()
+        var pageResult = dictRepository.findAll(spec, pageable);
+        var records = pageResult.getContent().stream()
                 .map(this::toVO)
                 .toList();
+
+        return new PageResultVO<>(
+                records,
+                pageResult.getTotalElements(),
+                pageResult.getNumber() + 1,
+                pageResult.getSize()
+        );
     }
 
     @Override

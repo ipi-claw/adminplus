@@ -5,6 +5,7 @@ import com.adminplus.dto.UserUpdateReq;
 import com.adminplus.service.UserService;
 import com.adminplus.utils.ApiResponse;
 import com.adminplus.vo.UserVO;
+import com.adminplus.vo.PageResultVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -14,7 +15,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 用户控制器
@@ -33,18 +33,13 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "分页查询用户列表")
-    public ApiResponse<Map<String, Object>> getUserList(
+    public ApiResponse<PageResultVO<UserVO>> getUserList(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String keyword
     ) {
-        List<UserVO> users = userService.getUserList(page, size, keyword);
-        return ApiResponse.ok(Map.of(
-                "records", users,
-                "page", page,
-                "size", size,
-                "total", users.size()
-        ));
+        PageResultVO<UserVO> result = userService.getUserList(page, size, keyword);
+        return ApiResponse.ok(result);
     }
 
     @GetMapping("/{id}")

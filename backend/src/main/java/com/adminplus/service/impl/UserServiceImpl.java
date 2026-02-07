@@ -11,6 +11,7 @@ import com.adminplus.repository.UserRepository;
 import com.adminplus.repository.UserRoleRepository;
 import com.adminplus.service.UserService;
 import com.adminplus.vo.UserVO;
+import com.adminplus.vo.PageResultVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -38,11 +39,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserVO> getUserList(Integer page, Integer size, String keyword) {
+    public PageResultVO<UserVO> getUserList(Integer page, Integer size, String keyword) {
         var pageable = PageRequest.of(page - 1, size);
-        var users = userRepository.findAll(pageable).getContent();
+        var pageResult = userRepository.findAll(pageable);
 
-        return users.stream().map(user -> {
+        var records = pageResult.getContent().stream().map(user -> {
             List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(user.getId());
             List<String> roleNames = userRoles.stream()
                     .map(UserRoleEntity::getRoleId)
@@ -64,6 +65,13 @@ public class UserServiceImpl implements UserService {
                     user.getUpdateTime()
             );
         }).toList();
+
+        return new PageResultVO<>(
+                records,
+                pageResult.getTotalElements(),
+                pageResult.getNumber() + 1,
+                pageResult.getSize()
+        );
     }
 
     @Override

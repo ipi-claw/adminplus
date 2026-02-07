@@ -4,6 +4,7 @@ import com.adminplus.dto.DictCreateReq;
 import com.adminplus.dto.DictUpdateReq;
 import com.adminplus.vo.DictItemVO;
 import com.adminplus.vo.DictVO;
+import com.adminplus.vo.PageResultVO;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public interface DictService {
     /**
      * 分页查询字典列表
      */
-    List<DictVO> getDictList(Integer page, Integer size, String keyword);
+    PageResultVO<DictVO> getDictList(Integer page, Integer size, String keyword);
 
     /**
      * 根据ID查询字典
