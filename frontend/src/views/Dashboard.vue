@@ -108,8 +108,7 @@ const fetchStats = async () => {
     const data = await getDashboardStats()
     stats.value = data
   } catch (error) {
-    console.error('获取统计数据失败:', error)
-    ElMessage.error('获取统计数据失败: ' + (error.message || '未知错误'))
+    ElMessage.error('获取统计数据失败')
   } finally {
     loading.value = false
   }

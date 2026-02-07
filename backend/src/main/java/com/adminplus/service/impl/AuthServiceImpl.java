@@ -1,9 +1,14 @@
 package com.adminplus.service.impl;
 
 import com.adminplus.dto.UserLoginReq;
+import com.adminplus.entity.RoleEntity;
 import com.adminplus.entity.UserEntity;
+import com.adminplus.entity.UserRoleEntity;
 import com.adminplus.exception.BizException;
+import com.adminplus.repository.RoleRepository;
+import com.adminplus.repository.UserRoleRepository;
 import com.adminplus.service.AuthService;
+import com.adminplus.service.PermissionService;
 import com.adminplus.service.UserService;
 import com.adminplus.vo.LoginResp;
 import com.adminplus.vo.UserVO;
@@ -21,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 认证服务实现
@@ -36,6 +42,9 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtEncoder jwtEncoder;
     private final UserService userService;
+    private final UserRoleRepository userRoleRepository;
+    private final RoleRepository roleRepository;
+    private final PermissionService permissionService;
 
     @Override
     public LoginResp login(UserLoginReq req) {
@@ -59,6 +68,16 @@ public class AuthServiceImpl implements AuthService {
 
             // 获取用户信息
             UserEntity user = userService.getUserByUsername(req.username());
+
+            // 查询用户角色
+            List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(user.getId());
+            List<String> roleNames = userRoles.stream()
+                    .map(UserRoleEntity::getRoleId)
+                    .map(roleId -> roleRepository.findById(roleId).orElse(null))
+                    .filter(role -> role != null)
+                    .map(RoleEntity::getName)
+                    .collect(Collectors.toList());
+
             UserVO userVO = new UserVO(
                     user.getId(),
                     user.getUsername(),
@@ -67,12 +86,15 @@ public class AuthServiceImpl implements AuthService {
                     user.getPhone(),
                     user.getAvatar(),
                     user.getStatus(),
-                    List.of(), // TODO: 查询用户角色
+                    roleNames,
                     user.getCreateTime(),
                     user.getUpdateTime()
             );
 
-            return new LoginResp(token, "Bearer", userVO);
+            // 查询用户权限
+            List<String> permissions = permissionService.getUserPermissions(user.getId());
+
+            return new LoginResp(token, "Bearer", userVO, permissions);
 
         } catch (AuthenticationException e) {
             log.error("登录失败: {}", e.getMessage());
@@ -84,6 +106,15 @@ public class AuthServiceImpl implements AuthService {
     public UserVO getCurrentUser(String username) {
         UserEntity user = userService.getUserByUsername(username);
 
+        // 查询用户角色
+        List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(user.getId());
+        List<String> roleNames = userRoles.stream()
+                .map(UserRoleEntity::getRoleId)
+                .map(roleId -> roleRepository.findById(roleId).orElse(null))
+                .filter(role -> role != null)
+                .map(RoleEntity::getName)
+                .collect(Collectors.toList());
+
         return new UserVO(
                 user.getId(),
                 user.getUsername(),
@@ -92,10 +123,16 @@ public class AuthServiceImpl implements AuthService {
                 user.getPhone(),
                 user.getAvatar(),
                 user.getStatus(),
-                List.of(), // TODO: 查询用户角色
+                roleNames,
                 user.getCreateTime(),
                 user.getUpdateTime()
         );
+    }
+
+    @Override
+    public List<String> getCurrentUserPermissions(String username) {
+        UserEntity user = userService.getUserByUsername(username);
+        return permissionService.getUserPermissions(user.getId());
     }
 
     @Override

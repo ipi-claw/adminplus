@@ -1,6 +1,7 @@
 package com.adminplus.controller;
 
 import com.adminplus.dto.UserLoginReq;
+import com.adminplus.security.CustomUserDetails;
 import com.adminplus.service.AuthService;
 import com.adminplus.utils.ApiResponse;
 import com.adminplus.vo.LoginResp;
@@ -13,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 认证控制器
@@ -32,7 +35,7 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "用户登录")
     public ApiResponse<LoginResp> login(@Valid @RequestBody UserLoginReq req) {
-        log.info("用户登录: {}", req.username());
+        log.info("用户��录: {}", req.username());
         LoginResp resp = authService.login(req);
         return ApiResponse.ok(resp);
     }
@@ -41,9 +44,18 @@ public class AuthController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取当前用户信息")
     public ApiResponse<UserVO> getCurrentUser(Authentication authentication) {
-        String username = authentication.getName();
-        UserVO userVO = authService.getCurrentUser(username);
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        UserVO userVO = authService.getCurrentUser(userDetails.getUsername());
         return ApiResponse.ok(userVO);
+    }
+
+    @GetMapping("/permissions")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取当前用户的权限列表")
+    public ApiResponse<List<String>> getCurrentUserPermissions(Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        List<String> permissions = authService.getCurrentUserPermissions(userDetails.getUsername());
+        return ApiResponse.ok(permissions);
     }
 
     @PostMapping("/logout")

@@ -1,13 +1,20 @@
 package com.adminplus.security;
 
+import com.adminplus.entity.RoleEntity;
 import com.adminplus.entity.UserEntity;
+import com.adminplus.entity.UserRoleEntity;
 import com.adminplus.exception.BizException;
+import com.adminplus.repository.RoleRepository;
 import com.adminplus.repository.UserRepository;
+import com.adminplus.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 自定义用户详情服务
@@ -20,6 +27,8 @@ import org.springframework.stereotype.Service;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final RoleRepository roleRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -31,6 +40,19 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new BizException("用户已被删除");
         }
 
+        // 查询用户的角色
+        List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(user.getId());
+        List<String> roleCodes = userRoles.stream()
+                .map(UserRoleEntity::getRoleId)
+                .map(roleId -> roleRepository.findById(roleId).orElse(null))
+                .filter(role -> role != null && role.getStatus() == 1)
+                .map(RoleEntity::getCode)
+                .collect(Collectors.toList());
+
+        // 暂时不加载权限，权限在登录时通过 PermissionService 加载
+        // 这里的 authorities 只包含角色，用于 Spring Security 的认证
+        List<String> permissions = List.of();
+
         return new CustomUserDetails(
                 user.getId(),
                 user.getUsername(),
@@ -39,7 +61,9 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getEmail(),
                 user.getPhone(),
                 user.getAvatar(),
-                user.getStatus()
+                user.getStatus(),
+                roleCodes,
+                permissions
         );
     }
 }

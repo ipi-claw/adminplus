@@ -15,6 +15,13 @@ export const getCurrentUser = () => {
   })
 }
 
+export const getCurrentUserPermissions = () => {
+  return request({
+    url: '/auth/permissions',
+    method: 'get'
+  })
+}
+
 export const logout = () => {
   return request({
     url: '/auth/logout',

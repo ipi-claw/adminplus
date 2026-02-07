@@ -190,7 +190,7 @@ const getData = async () => {
     tableData.value = data.records
     total.value = data.total
   } catch (error) {
-    console.error('获取用户列表失败:', error)
+    ElMessage.error('获取用户列表失败')
   } finally {
     loading.value = false
   }
@@ -201,7 +201,7 @@ const getRoles = async () => {
     const data = await getRoleList()
     allRoles.value = data.records
   } catch (error) {
-    console.error('获取角色列表失败:', error)
+    ElMessage.error('获取角色列表失败')
   }
 }
 
@@ -256,7 +256,7 @@ const handleSubmit = async () => {
     dialogVisible.value = false
     getData()
   } catch (error) {
-    console.error('提交失败:', error)
+    // 错误已在验证或 API 中处理
   } finally {
     submitLoading.value = false
   }
@@ -304,7 +304,7 @@ const handleAssignRole = async (row) => {
     const roleIds = await getUserRoleIds(row.id)
     selectedRoles.value = roleIds
   } catch (error) {
-    console.error('获取用户角色失败:', error)
+    ElMessage.error('获取用户角色失败')
   }
 }
 
@@ -320,7 +320,7 @@ const handleRoleSubmit = async () => {
     roleDialogVisible.value = false
     getData()
   } catch (error) {
-    console.error('分配角色失败:', error)
+    ElMessage.error('分配角色失败')
   } finally {
     roleSubmitLoading.value = false
   }

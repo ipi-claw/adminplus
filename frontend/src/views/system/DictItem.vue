@@ -155,7 +155,6 @@ const getData = async () => {
     tableData.value = data.records || data
     total.value = data.total || 0
   } catch (error) {
-    console.error('获取字典项列表失败:', error)
     ElMessage.error('获取字典项列表失败')
   } finally {
     loading.value = false
@@ -216,7 +215,6 @@ const handleSubmit = async () => {
     dialogVisible.value = false
     getData()
   } catch (error) {
-    console.error('提交失败:', error)
     ElMessage.error('操作失败')
   } finally {
     submitLoading.value = false

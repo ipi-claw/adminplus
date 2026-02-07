@@ -1,26 +1,26 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { login as loginApi, getCurrentUser } from '@/api/auth'
+import { login as loginApi, getCurrentUser, getCurrentUserPermissions } from '@/api/auth'
 import { assignRoles as assignRolesApi, getUserRoleIds as getUserRoleIdsApi } from '@/api/user'
 
 export const useUserStore = defineStore('user', () => {
-  const token = ref(localStorage.getItem('token') || '')
-  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
-  const permissions = ref(JSON.parse(localStorage.getItem('permissions') || '[]'))
+  const token = ref(sessionStorage.getItem('token') || '')
+  const user = ref(JSON.parse(sessionStorage.getItem('user') || 'null'))
+  const permissions = ref(JSON.parse(sessionStorage.getItem('permissions') || '[]'))
 
   const setToken = (val) => {
     token.value = val
-    localStorage.setItem('token', val)
+    sessionStorage.setItem('token', val)
   }
 
   const setUser = (val) => {
     user.value = val
-    localStorage.setItem('user', JSON.stringify(val))
+    sessionStorage.setItem('user', JSON.stringify(val))
   }
 
   const setPermissions = (val) => {
-    permissions.value = val
-    localStorage.setItem('permissions', JSON.stringify(val))
+    permissions.value = val || []
+    sessionStorage.setItem('permissions', JSON.stringify(val || []))
   }
 
   const login = async (username, password) => {
@@ -37,13 +37,19 @@ export const useUserStore = defineStore('user', () => {
     return data
   }
 
+  const refreshPermissions = async () => {
+    const data = await getCurrentUserPermissions()
+    setPermissions(data || [])
+    return data
+  }
+
   const logout = () => {
     token.value = ''
     user.value = null
     permissions.value = []
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    localStorage.removeItem('permissions')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
+    sessionStorage.removeItem('permissions')
   }
 
   /**
@@ -94,6 +100,7 @@ export const useUserStore = defineStore('user', () => {
     setPermissions,
     login,
     getUserInfo,
+    refreshPermissions,
     logout,
     hasPermission,
     hasAnyPermission,

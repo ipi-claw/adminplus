@@ -72,10 +72,27 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
 
-  if (to.meta.requiresAuth && !userStore.token) {
+  // 检查 token 是否存在
+  const token = userStore.token || localStorage.getItem('token') || sessionStorage.getItem('token')
+
+  if (to.meta.requiresAuth && !token) {
     next('/login')
-  } else if (to.path === '/login' && userStore.token) {
+  } else if (to.path === '/login' && token) {
     next('/')
+  } else if (to.meta.requiresAuth && token) {
+    // 验证 token 有效性（可选：添加 decode 验证）
+    try {
+      // 简单的 token 格式验证
+      if (typeof token === 'string' && token.length > 0) {
+        next()
+      } else {
+        userStore.logout()
+        next('/login')
+      }
+    } catch (error) {
+      userStore.logout()
+      next('/login')
+    }
   } else {
     next()
   }

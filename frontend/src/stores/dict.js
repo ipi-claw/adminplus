@@ -20,7 +20,7 @@ export const useDictStore = defineStore('dict', () => {
       dictMap.value.set(dictType, data)
       return data
     } catch (error) {
-      console.error(`获取字典 ${dictType} 失败:`, error)
+      // 静默失败，返回空数组
       return []
     }
   }
@@ -34,7 +34,7 @@ export const useDictStore = defineStore('dict', () => {
       dictMap.value.set(dictType, data)
       return data
     } catch (error) {
-      console.error(`刷新字典 ${dictType} 失败:`, error)
+      // 静默失败，返回空数组
       return []
     }
   }

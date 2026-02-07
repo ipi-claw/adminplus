@@ -167,7 +167,7 @@ const getData = async () => {
     const data = await getRoleList()
     tableData.value = data.records
   } catch (error) {
-    console.error('获取角色列表失败:', error)
+    ElMessage.error('获取角色列表失败')
   } finally {
     loading.value = false
   }
@@ -177,7 +177,7 @@ const getMenuData = async () => {
   try {
     menuTreeData.value = await getMenuTree()
   } catch (error) {
-    console.error('获取菜单树失败:', error)
+    ElMessage.error('获取菜单树失败')
   }
 }
 
@@ -217,12 +217,12 @@ const handleSubmit = async () => {
       ElMessage.success('更新成功')
     } else {
       await createRole(form)
-      ElMessage.success('创建成功')
+      ElMessage.success('创建��功')
     }
     dialogVisible.value = false
     getData()
   } catch (error) {
-    console.error('提交失败:', error)
+    // 错误已在验证或 API 中处理
   } finally {
     submitLoading.value = false
   }
@@ -240,7 +240,7 @@ const handleAssignMenu = async (row) => {
     const menuIds = await getRoleMenuIds(row.id)
     menuTreeRef.value?.setCheckedKeys(menuIds)
   } catch (error) {
-    console.error('获取角色菜单失败:', error)
+    ElMessage.error('获取角色菜单失败')
   }
 }
 
@@ -259,7 +259,7 @@ const handleMenuSubmit = async () => {
     ElMessage.success('分配权限成功')
     menuDialogVisible.value = false
   } catch (error) {
-    console.error('分配权限失败:', error)
+    ElMessage.error('分配权限失败')
   } finally {
     menuSubmitLoading.value = false
   }
