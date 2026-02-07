@@ -29,4 +29,9 @@ public interface PermissionService {
      * 获取角色的权限标识符列表
      */
     List<String> getRolePermissions(Long roleId);
+
+    /**
+     * 获取所有可用权限（用于分配）
+     */
+    List<PermissionVO> getAllPermissions();
 }

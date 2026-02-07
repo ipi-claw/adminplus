@@ -6,6 +6,7 @@ import com.adminplus.entity.UserRoleEntity;
 import com.adminplus.exception.BizException;
 import com.adminplus.repository.MenuRepository;
 import com.adminplus.repository.RoleMenuRepository;
+import com.adminplus.repository.RoleRepository;
 import com.adminplus.repository.UserRoleRepository;
 import com.adminplus.service.PermissionService;
 import com.adminplus.vo.PermissionVO;
@@ -67,7 +68,7 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RoleVO> getUserRoles(Long userId) {
+    public List<String> getUserRoles(Long userId) {
         List<Long> roleIds = userRoleRepository.findByUserId(userId).stream()
                 .map(UserRoleEntity::getRoleId)
                 .toList();
@@ -75,17 +76,7 @@ public class PermissionServiceImpl implements PermissionService {
         return roleIds.stream()
                 .map(roleId -> roleRepository.findById(roleId).orElse(null))
                 .filter(role -> role != null)
-                .map(role -> new RoleVO(
-                        role.getId(),
-                        role.getCode(),
-                        role.getName(),
-                        role.getDescription(),
-                        role.getDataScope(),
-                        role.getStatus(),
-                        role.getSortOrder(),
-                        role.getCreateTime(),
-                        role.getUpdateTime()
-                ))
+                .map(RoleEntity::getCode)
                 .toList();
     }
 
