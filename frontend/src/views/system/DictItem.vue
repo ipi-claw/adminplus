@@ -3,7 +3,12 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>字典项管理 - {{ dictName }}</span>
+          <div class="header-left">
+            <el-button type="default" @click="handleBack" :icon="ArrowLeft">
+              返回
+            </el-button>
+            <span class="header-title">字典项管理 - {{ dictName }}</span>
+          </div>
           <el-button type="primary" @click="handleAdd">
             <el-icon><Plus /></el-icon>
             新增字典项
@@ -106,11 +111,12 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search, Refresh } from '@element-plus/icons-vue'
+import { Plus, Search, Refresh, ArrowLeft } from '@element-plus/icons-vue'
 import { getDictItems, createDictItem, updateDictItem, deleteDictItem, updateDictItemStatus } from '@/api/dict'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 const dictId = route.params.dictId
 const dictName = route.query.dictName || '未知'
 
@@ -165,6 +171,10 @@ const handleReset = () => {
   queryForm.keyword = ''
   queryForm.page = 1
   getData()
+}
+
+const handleBack = () => {
+  router.back()
 }
 
 const handleAdd = () => {
@@ -260,6 +270,17 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .search-form {
