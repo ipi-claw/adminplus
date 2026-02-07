@@ -4,6 +4,7 @@ import com.adminplus.dto.DictCreateReq;
 import com.adminplus.dto.DictUpdateReq;
 import com.adminplus.service.DictService;
 import com.adminplus.utils.ApiResponse;
+import com.adminplus.vo.DictItemVO;
 import com.adminplus.vo.DictVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -86,6 +87,14 @@ public class DictController {
     public ApiResponse<Void> deleteDict(@PathVariable Long id) {
         dictService.deleteDict(id);
         return ApiResponse.ok();
+    }
+
+    @GetMapping("/type/{dictType}/items")
+    @Operation(summary = "根据字典类型查询字典项")
+    @PreAuthorize("hasAuthority('dict:query')")
+    public ApiResponse<List<DictItemVO>> getDictItemsByType(@PathVariable String dictType) {
+        List<DictItemVO> items = dictService.getDictItemsByType(dictType);
+        return ApiResponse.ok(items);
     }
 
     @PutMapping("/{id}/status")

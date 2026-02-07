@@ -1,8 +1,11 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getDictList, createDict, updateDict, deleteDict, updateDictStatus } from '@/api/dict'
 import { debounce } from '@/utils/debounce'
+
+const router = useRouter()
 
 // 数据
 const tableData = ref([])
@@ -151,6 +154,15 @@ const handleSizeChange = (size) => {
   getList()
 }
 
+// 查看字典项
+const handleViewItems = (row) => {
+  router.push({
+    name: 'DictItem',
+    params: { dictId: row.id },
+    query: { dictType: row.dictType, dictName: row.dictName }
+  })
+}
+
 onMounted(() => {
   getList()
 })
@@ -193,7 +205,7 @@ onMounted(() => {
         <el-table-column prop="dictType" label="字典类型" width="150" />
         <el-table-column prop="dictName" label="字典名称" width="150" />
         <el-table-column prop="remark" label="备注" />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-switch
               v-model="row.status"
@@ -205,8 +217,15 @@ onMounted(() => {
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
+            <el-button
+              type="info"
+              size="small"
+              @click="handleViewItems(row)"
+            >
+              字典项
+            </el-button>
             <el-button
               type="primary"
               size="small"

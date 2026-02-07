@@ -16,14 +16,14 @@ import java.util.List;
 public interface UserRoleRepository extends JpaRepository<UserRoleEntity, Long> {
 
     /**
-     * 根据用户ID查询角色ID列表
+     * 根据用户ID查询角色关联列表
      */
-    List<Long> findRoleIdByUserId(Long userId);
+    List<UserRoleEntity> findByUserId(Long userId);
 
     /**
-     * 根据角色ID查询用户ID列表
+     * 根据角色ID查询用户关联列表
      */
-    List<Long> findUserIdByRoleId(Long roleId);
+    List<UserRoleEntity> findByRoleId(Long roleId);
 
     /**
      * 删除用户的所有角色

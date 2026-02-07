@@ -4,8 +4,10 @@ import com.adminplus.dto.DictCreateReq;
 import com.adminplus.dto.DictUpdateReq;
 import com.adminplus.entity.DictEntity;
 import com.adminplus.exception.BizException;
+import com.adminplus.repository.DictItemRepository;
 import com.adminplus.repository.DictRepository;
 import com.adminplus.service.DictService;
+import com.adminplus.vo.DictItemVO;
 import com.adminplus.vo.DictVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,10 +35,11 @@ import java.util.List;
 public class DictServiceImpl implements DictService {
 
     private final DictRepository dictRepository;
+    private final DictItemRepository dictItemRepository;
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "dict", key = "'list:' + #page + ':' + #size + ':' + (#keyword != null ? #keyword : '')")
+    // @Cacheable(value = "dict", key = "'list:' + #page + ':' + #size + ':' + (#keyword != null ? #keyword : '')")
     public List<DictVO> getDictList(Integer page, Integer size, String keyword) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createTime").descending());
 
@@ -134,6 +137,18 @@ public class DictServiceImpl implements DictService {
         log.info("更新字典状态成功: {}", dict.getDictType());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    // @Cacheable(value = "dict", key = "'items:' + #dictType")
+    public List<DictItemVO> getDictItemsByType(String dictType) {
+        DictEntity dict = dictRepository.findByDictType(dictType)
+                .orElseThrow(() -> new BizException("字典不存在"));
+
+        return dictItemRepository.findByDictIdAndStatusOrderBySortOrderAsc(dict.getId(), 1).stream()
+                .map(this::toItemVO)
+                .toList();
+    }
+
     private DictVO toVO(DictEntity dict) {
         return new DictVO(
                 dict.getId(),
@@ -142,6 +157,21 @@ public class DictServiceImpl implements DictService {
                 dict.getRemark(),
                 dict.getCreateTime(),
                 dict.getUpdateTime()
+        );
+    }
+
+    private com.adminplus.vo.DictItemVO toItemVO(com.adminplus.entity.DictItemEntity item) {
+        return new com.adminplus.vo.DictItemVO(
+                item.getId(),
+                item.getDictId(),
+                item.getDictType(),
+                item.getLabel(),
+                item.getValue(),
+                item.getSortOrder(),
+                item.getStatus(),
+                item.getRemark(),
+                item.getCreateTime(),
+                item.getUpdateTime()
         );
     }
 }

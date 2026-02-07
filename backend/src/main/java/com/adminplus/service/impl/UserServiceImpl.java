@@ -43,8 +43,9 @@ public class UserServiceImpl implements UserService {
         var users = userRepository.findAll(pageable).getContent();
 
         return users.stream().map(user -> {
-            List<Long> roleIds = userRoleRepository.findRoleIdByUserId(user.getId());
-            List<String> roleNames = roleIds.stream()
+            List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(user.getId());
+            List<String> roleNames = userRoles.stream()
+                    .map(UserRoleEntity::getRoleId)
                     .map(roleId -> roleRepository.findById(roleId).orElse(null))
                     .filter(role -> role != null)
                     .map(RoleEntity::getName)
@@ -71,8 +72,9 @@ public class UserServiceImpl implements UserService {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new BizException("用户不存在"));
 
-        List<Long> roleIds = userRoleRepository.findRoleIdByUserId(id);
-        List<String> roleNames = roleIds.stream()
+        List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(id);
+        List<String> roleNames = userRoles.stream()
+                .map(UserRoleEntity::getRoleId)
                 .map(roleId -> roleRepository.findById(roleId).orElse(null))
                 .filter(role -> role != null)
                 .map(RoleEntity::getName)
@@ -236,6 +238,8 @@ public class UserServiceImpl implements UserService {
         if (!userRepository.existsById(userId)) {
             throw new BizException("用户不存在");
         }
-        return userRoleRepository.findRoleIdByUserId(userId);
+        return userRoleRepository.findByUserId(userId).stream()
+                .map(UserRoleEntity::getRoleId)
+                .toList();
     }
 }

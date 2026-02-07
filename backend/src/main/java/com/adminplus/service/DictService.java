@@ -2,6 +2,7 @@ package com.adminplus.service;
 
 import com.adminplus.dto.DictCreateReq;
 import com.adminplus.dto.DictUpdateReq;
+import com.adminplus.vo.DictItemVO;
 import com.adminplus.vo.DictVO;
 
 import java.util.List;
@@ -28,6 +29,11 @@ public interface DictService {
      * 根据字典类型查询
      */
     DictVO getDictByType(String dictType);
+
+    /**
+     * 根据字典类型查询字典项
+     */
+    List<DictItemVO> getDictItemsByType(String dictType);
 
     /**
      * 创建字典

@@ -25,14 +25,14 @@ COPY --from=builder /app/target/*.jar app.jar
 RUN mkdir -p /app/logs
 
 # 暴露端口
-EXPOSE 8080
+EXPOSE 8081
 
 # JVM 参数优化
 ENV JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseContainerSupport"
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+  CMD wget --quiet --tries=1 --spider http://localhost:8081/api/actuator/health || exit 1
 
 # 启动应用
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

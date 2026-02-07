@@ -33,12 +33,7 @@ spring:
 
   # 缓存配置
   cache:
-    type: redis
-    redis:
-      time-to-live: 3600s
-      cache-null-values: false
-      key-prefix: "adminplus:"
-      use-key-prefix: true
+    type: none
 
   # Redis 配置
   data:

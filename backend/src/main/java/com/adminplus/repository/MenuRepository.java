@@ -19,4 +19,9 @@ public interface MenuRepository extends JpaRepository<MenuEntity, Long> {
      * 查询所有菜单（按排序字段排序）
      */
     List<MenuEntity> findAllByOrderBySortOrderAsc();
+
+    /**
+     * 统计未删除的菜单数量
+     */
+    long countByDeletedFalse();
 }

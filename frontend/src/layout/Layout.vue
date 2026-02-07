@@ -33,6 +33,10 @@
             <el-icon><Menu /></el-icon>
             <span>菜单管理</span>
           </el-menu-item>
+          <el-menu-item index="/system/dict">
+            <el-icon><Document /></el-icon>
+            <span>字典管理</span>
+          </el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-aside>

@@ -24,4 +24,9 @@ public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
      * 检查角色编码是否存在
      */
     boolean existsByCode(String code);
+
+    /**
+     * 统计未删除的角色数量
+     */
+    long countByDeletedFalse();
 }

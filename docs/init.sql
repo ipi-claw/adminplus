@@ -10,6 +10,9 @@ CREATE DATABASE IF NOT EXISTS adminplus;
 -- 删除已存在的表（按依赖关系倒序）
 DROP TABLE IF EXISTS sys_role_menu CASCADE;
 DROP TABLE IF EXISTS sys_user_role CASCADE;
+DROP TABLE IF EXISTS sys_dict_item CASCADE;
+DROP TABLE IF EXISTS sys_dict CASCADE;
+DROP TABLE IF EXISTS sys_log CASCADE;
 DROP TABLE IF EXISTS sys_menu CASCADE;
 DROP TABLE IF EXISTS sys_role CASCADE;
 DROP TABLE IF EXISTS sys_user CASCADE;
@@ -78,6 +81,55 @@ CREATE TABLE sys_role_menu (
     UNIQUE(role_id, menu_id)
 );
 
+-- 创建字典表
+CREATE TABLE sys_dict (
+    id BIGSERIAL PRIMARY KEY,
+    dict_name TEXT NOT NULL,
+    dict_type TEXT NOT NULL UNIQUE,
+    status INTEGER NOT NULL DEFAULT 1,
+    remark TEXT,
+    create_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+-- 创建字典项表
+CREATE TABLE sys_dict_item (
+    id BIGSERIAL PRIMARY KEY,
+    dict_id BIGINT NOT NULL,
+    label TEXT NOT NULL,
+    value TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    status INTEGER NOT NULL DEFAULT 1,
+    remark TEXT,
+    create_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT fk_dict_item_dict FOREIGN KEY (dict_id) REFERENCES sys_dict(id) ON DELETE CASCADE
+);
+
+-- 创建操作日志表
+CREATE TABLE sys_log (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT,
+    username TEXT,
+    module TEXT,
+    operation_type INTEGER,
+    description TEXT,
+    method TEXT,
+    params TEXT,
+    ip TEXT,
+    location TEXT,
+    browser TEXT,
+    os TEXT,
+    cost_time BIGINT,
+    status INTEGER,
+    error_msg TEXT,
+    create_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted BOOLEAN NOT NULL DEFAULT FALSE
+);
+
 -- 创建索引
 CREATE INDEX idx_sys_user_username ON sys_user(username);
 CREATE INDEX idx_sys_user_status ON sys_user(status);
@@ -88,6 +140,14 @@ CREATE INDEX idx_sys_user_role_user_id ON sys_user_role(user_id);
 CREATE INDEX idx_sys_user_role_role_id ON sys_user_role(role_id);
 CREATE INDEX idx_sys_role_menu_role_id ON sys_role_menu(role_id);
 CREATE INDEX idx_sys_role_menu_menu_id ON sys_role_menu(menu_id);
+CREATE INDEX idx_sys_dict_type ON sys_dict(dict_type);
+CREATE INDEX idx_sys_dict_status ON sys_dict(status);
+CREATE INDEX idx_sys_dict_item_dict_id ON sys_dict_item(dict_id);
+CREATE INDEX idx_sys_dict_item_value ON sys_dict_item(value);
+CREATE INDEX idx_sys_log_user_id ON sys_log(user_id);
+CREATE INDEX idx_sys_log_module ON sys_log(module);
+CREATE INDEX idx_sys_log_operation_type ON sys_log(operation_type);
+CREATE INDEX idx_sys_log_create_time ON sys_log(create_time);
 
 -- 插入初始数据
 
@@ -152,11 +212,23 @@ CREATE TRIGGER update_sys_role_updated_at BEFORE UPDATE ON sys_role
 CREATE TRIGGER update_sys_menu_updated_at BEFORE UPDATE ON sys_menu
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_sys_dict_updated_at BEFORE UPDATE ON sys_dict
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_sys_dict_item_updated_at BEFORE UPDATE ON sys_dict_item
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_sys_log_updated_at BEFORE UPDATE ON sys_log
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 COMMENT ON TABLE sys_user IS '用户表';
 COMMENT ON TABLE sys_role IS '角色表';
 COMMENT ON TABLE sys_menu IS '菜单表';
 COMMENT ON TABLE sys_user_role IS '用户-角色关联表';
 COMMENT ON TABLE sys_role_menu IS '角色-菜单关联表';
+COMMENT ON TABLE sys_dict IS '字典表';
+COMMENT ON TABLE sys_dict_item IS '字典项表';
+COMMENT ON TABLE sys_log IS '操作日志表';
 
 COMMENT ON COLUMN sys_user.username IS '用户名';
 COMMENT ON COLUMN sys_user.password IS '密码（BCrypt 加密）';
@@ -183,4 +255,31 @@ COMMENT ON COLUMN sys_menu.perm_key IS '权限标识符（如 user:add）';
 COMMENT ON COLUMN sys_menu.icon IS '图标';
 COMMENT ON COLUMN sys_menu.sort_order IS '排序';
 COMMENT ON COLUMN sys_menu.visible IS '是否可见（1=显示，0=隐藏）';
-COMMENT ON COLUMN sys_menu.status IS '状态（1=正常，0=禁用）';
+COMMENT ON COLUMN sys_menu.status IS '状态（1=正常，0=禁���）';
+
+COMMENT ON COLUMN sys_dict.dict_name IS '字典名称';
+COMMENT ON COLUMN sys_dict.dict_type IS '字典类型（唯一标识）';
+COMMENT ON COLUMN sys_dict.status IS '状态（1=正常，0=禁用）';
+COMMENT ON COLUMN sys_dict.remark IS '备注';
+
+COMMENT ON COLUMN sys_dict_item.dict_id IS '字典ID';
+COMMENT ON COLUMN sys_dict_item.label IS '字典标签';
+COMMENT ON COLUMN sys_dict_item.value IS '字典值';
+COMMENT ON COLUMN sys_dict_item.sort_order IS '排序';
+COMMENT ON COLUMN sys_dict_item.status IS '状态（1=正常，0=禁用）';
+COMMENT ON COLUMN sys_dict_item.remark IS '备注';
+
+COMMENT ON COLUMN sys_log.user_id IS '操作人ID';
+COMMENT ON COLUMN sys_log.username IS '操作人用户名';
+COMMENT ON COLUMN sys_log.module IS '操作模块';
+COMMENT ON COLUMN sys_log.operation_type IS '操作类型（1=查询，2=新增，3=修改，4=删除，5=导出，6=导入，7=其他）';
+COMMENT ON COLUMN sys_log.description IS '操作描述';
+COMMENT ON COLUMN sys_log.method IS '请求方法';
+COMMENT ON COLUMN sys_log.params IS '请求参数';
+COMMENT ON COLUMN sys_log.ip IS '请求IP';
+COMMENT ON COLUMN sys_log.location IS '请求地点';
+COMMENT ON COLUMN sys_log.browser IS '浏览器类型';
+COMMENT ON COLUMN sys_log.os IS '操作系统';
+COMMENT ON COLUMN sys_log.cost_time IS '执行时长（毫秒）';
+COMMENT ON COLUMN sys_log.status IS '状态（1=成功，0=失败）';
+COMMENT ON COLUMN sys_log.error_msg IS '异常信息';

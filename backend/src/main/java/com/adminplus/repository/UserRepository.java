@@ -24,4 +24,9 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
      * 检查用户名是否存在
      */
     boolean existsByUsername(String username);
+
+    /**
+     * 统计未删除的用户数量
+     */
+    long countByDeletedFalse();
 }

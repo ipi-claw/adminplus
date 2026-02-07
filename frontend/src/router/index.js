@@ -43,6 +43,19 @@ const routes = [
             name: 'SystemMenu',
             component: () => import('@/views/system/Menu.vue'),
             meta: { title: '菜单管理' }
+          },
+          {
+            path: 'dict',
+            name: 'SystemDict',
+            component: () => import('@/views/system/Dict.vue'),
+            meta: { title: '字典管理' }
+          },
+          {
+            path: 'dict/:dictId',
+            name: 'DictItem',
+            component: () => import('@/views/system/DictItem.vue'),
+            meta: { title: '字典项管理' },
+            props: true
           }
         ]
       }

@@ -44,7 +44,7 @@ services:
       dockerfile: Dockerfile
     container_name: adminplus-backend
     ports:
-      - "8081:8080"
+      - "8081:8081"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/adminplus
       SPRING_DATASOURCE_USERNAME: postgres
@@ -54,7 +54,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/api/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3

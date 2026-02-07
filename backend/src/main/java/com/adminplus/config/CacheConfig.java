@@ -24,7 +24,7 @@ import java.time.Duration;
  * @since 2026-02-06
  */
 @Configuration
-@EnableCaching
+// @EnableCaching
 public class CacheConfig {
 
     /**
@@ -36,9 +36,11 @@ public class CacheConfig {
         // 配置 JSON 序列化
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        objectMapper.activateDefaultTyping(
+        // 使用 EVERYTHING 类型策略，确保所有对象都包含类型信息
+        objectMapper.activateDefaultTypingAsProperty(
                 LaissezFaireSubTypeValidator.instance,
-                ObjectMapper.DefaultTyping.NON_FINAL
+                ObjectMapper.DefaultTyping.EVERYTHING,
+                "@class"
         );
 
         GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);

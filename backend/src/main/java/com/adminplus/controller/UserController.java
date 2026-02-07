@@ -33,7 +33,6 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "分页查询用户列表")
-    @PreAuthorize("hasAuthority('user:list')")
     public ApiResponse<Map<String, Object>> getUserList(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -50,7 +49,6 @@ public class UserController {
 
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询用户")
-    @PreAuthorize("hasAuthority('user:query')")
     public ApiResponse<UserVO> getUserById(@PathVariable Long id) {
         UserVO user = userService.getUserById(id);
         return ApiResponse.ok(user);

@@ -2,13 +2,13 @@
   <div class="dashboard">
     <el-row :gutter="20">
       <el-col :span="6">
-        <el-card shadow="hover">
+        <el-card shadow="hover" v-loading="loading">
           <div class="stat-card">
             <div class="stat-icon" style="background: #409EFF">
               <el-icon :size="40"><User /></el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">1,234</div>
+              <div class="stat-value">{{ stats.userCount.toLocaleString() }}</div>
               <div class="stat-label">用户总数</div>
             </div>
           </div>
@@ -16,13 +16,13 @@
       </el-col>
 
       <el-col :span="6">
-        <el-card shadow="hover">
+        <el-card shadow="hover" v-loading="loading">
           <div class="stat-card">
             <div class="stat-icon" style="background: #67C23A">
               <el-icon :size="40"><UserFilled /></el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">56</div>
+              <div class="stat-value">{{ stats.roleCount.toLocaleString() }}</div>
               <div class="stat-label">角色总数</div>
             </div>
           </div>
@@ -30,13 +30,13 @@
       </el-col>
 
       <el-col :span="6">
-        <el-card shadow="hover">
+        <el-card shadow="hover" v-loading="loading">
           <div class="stat-card">
             <div class="stat-icon" style="background: #E6A23C">
               <el-icon :size="40"><Menu /></el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">128</div>
+              <div class="stat-value">{{ stats.menuCount.toLocaleString() }}</div>
               <div class="stat-label">菜单总数</div>
             </div>
           </div>
@@ -44,13 +44,13 @@
       </el-col>
 
       <el-col :span="6">
-        <el-card shadow="hover">
+        <el-card shadow="hover" v-loading="loading">
           <div class="stat-card">
             <div class="stat-icon" style="background: #F56C6C">
               <el-icon :size="40"><Document /></el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">8,902</div>
+              <div class="stat-value">{{ stats.logCount.toLocaleString() }}</div>
               <div class="stat-label">日志总数</div>
             </div>
           </div>
@@ -86,7 +86,39 @@
 </template>
 
 <script setup>
-// Dashboard 首页
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { getDashboardStats } from '@/api/dashboard'
+
+// 统计数据
+const stats = ref({
+  userCount: 0,
+  roleCount: 0,
+  menuCount: 0,
+  logCount: 0
+})
+
+// 加载状态
+const loading = ref(false)
+
+// 获取统计数据
+const fetchStats = async () => {
+  try {
+    loading.value = true
+    const data = await getDashboardStats()
+    stats.value = data
+  } catch (error) {
+    console.error('获取统计数据失败:', error)
+    ElMessage.error('获取统计数据失败: ' + (error.message || '未知错误'))
+  } finally {
+    loading.value = false
+  }
+}
+
+// 组件挂载时获取数据
+onMounted(() => {
+  fetchStats()
+})
 </script>
 
 <style scoped>
