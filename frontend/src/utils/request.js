@@ -29,11 +29,14 @@ export const hideLoginDialog = () => {
 }
 
 // 处理登录成功
-export const handleLoginSuccess = (token, user) => {
+export const handleLoginSuccess = (token, user, permissions) => {
   sessionStorage.setItem('token', token)
   sessionStorage.setItem('user', JSON.stringify(user))
+  if (permissions) {
+    sessionStorage.setItem('permissions', JSON.stringify(permissions))
+  }
   if (loginDialogResolve) {
-    loginDialogResolve({ token, user })
+    loginDialogResolve({ token, user, permissions })
   }
   hideLoginDialog()
 }

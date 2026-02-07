@@ -93,16 +93,19 @@ const handleLogin = async () => {
       password: loginForm.password
     })
 
-    // 保存 token 和用户信息
+    // 保存 token、用户信息和权限
     if (res.token) {
       sessionStorage.setItem('token', res.token)
     }
     if (res.user) {
       sessionStorage.setItem('user', JSON.stringify(res.user))
     }
+    if (res.permissions) {
+      sessionStorage.setItem('permissions', JSON.stringify(res.permissions))
+    }
 
     // 调用 request.js 中的登录成功处理
-    handleLoginSuccess(res.token, res.user)
+    handleLoginSuccess(res.token, res.user, res.permissions)
 
     ElMessage.success('登录成功')
 

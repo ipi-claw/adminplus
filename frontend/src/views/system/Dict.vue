@@ -257,6 +257,7 @@ onMounted(() => {
               type="primary"
               size="small"
               @click="handleEdit(row)"
+              v-auth="'dict:edit'"
             >
               编辑
             </el-button>
@@ -264,6 +265,7 @@ onMounted(() => {
               type="warning"
               size="small"
               @click="handleStatus(row)"
+              v-auth="'dict:edit'"
             >
               {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
@@ -271,6 +273,7 @@ onMounted(() => {
               type="danger"
               size="small"
               @click="handleDelete(row)"
+              v-auth="'dict:delete'"
             >
               删除
             </el-button>
