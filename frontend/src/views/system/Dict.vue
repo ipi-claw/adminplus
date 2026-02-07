@@ -103,6 +103,7 @@ const handleSubmit = async () => {
     if (formData.id) {
       await updateDict(formData.id, {
         dictName: formData.dictName,
+        status: formData.status,
         remark: formData.remark
       })
       ElMessage.success('更新成功')
