@@ -106,7 +106,7 @@ const handleCommand = async (command) => {
       // 取消操作
     }
   } else if (command === 'profile') {
-    ElMessage.info('个人中心功能开发中...')
+    router.push('/profile')
   }
 }
 </script>
