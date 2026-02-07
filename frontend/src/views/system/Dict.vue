@@ -142,6 +142,24 @@ const handleStatusChange = async (row) => {
   }
 }
 
+const handleStatus = async (row) => {
+  const newStatus = row.status === 1 ? 0 : 1
+  const action = newStatus === 1 ? '启用' : '禁用'
+
+  try {
+    await ElMessageBox.confirm(`确定要${action}该字典吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await updateDictStatus(row.id, newStatus)
+    ElMessage.success(`${action}成功`)
+    getList()
+  } catch (error) {
+    // 取消操作
+  }
+}
+
 // 分页
 const handlePageChange = (page) => {
   queryParams.page = page
@@ -207,13 +225,9 @@ onMounted(() => {
         <el-table-column prop="remark" label="备注" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-switch
-              v-model="row.status"
-              :active-value="1"
-              :inactive-value="0"
-              :before-change="() => handleStatusChange(row)"
-              v-auth="'dict:edit'"
-            />
+            <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+              {{ row.status === 1 ? '正常' : '禁用' }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
@@ -233,6 +247,14 @@ onMounted(() => {
               v-auth="'dict:edit'"
             >
               编辑
+            </el-button>
+            <el-button
+              type="warning"
+              size="small"
+              @click="handleStatus(row)"
+              v-auth="'dict:edit'"
+            >
+              {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
             <el-button
               type="danger"
