@@ -1,5 +1,6 @@
 package com.adminplus.service;
 
+import com.adminplus.vo.PermissionVO;
 import java.util.List;
 
 /**
