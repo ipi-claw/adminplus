@@ -1,6 +1,7 @@
 package com.adminplus.controller;
 
 import com.adminplus.service.CaptchaService;
+import com.adminplus.utils.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class CaptchaController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "生成验证码")
-    public CaptchaResponse generateCaptcha() throws IOException {
+    public ApiResponse<CaptchaResponse> generateCaptcha() throws IOException {
         var result = captchaService.generateCaptcha();
 
         // 将图片转换为 Base64
@@ -39,7 +40,8 @@ public class CaptchaController {
         byte[] imageBytes = baos.toByteArray();
         String base64Image = Base64.getEncoder().encodeToString(imageBytes);
 
-        return new CaptchaResponse(result.captchaId(), "data:image/png;base64," + base64Image);
+        CaptchaResponse response = new CaptchaResponse(result.captchaId(), "data:image/png;base64," + base64Image);
+        return ApiResponse.ok(response);
     }
 
     /**
