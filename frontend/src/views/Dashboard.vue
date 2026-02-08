@@ -837,16 +837,23 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
-.quick-actions .el-button {
+.quick-actions :deep(.el-button) {
   width: 100%;
-  height: 50px;
+  height: 50px !important;
   font-size: 14px;
   transition: all 0.3s;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   gap: 8px;
+  padding: 0 !important;
+  line-height: 1 !important;
+}
+
+.quick-actions :deep(.el-button .el-icon) {
+  font-size: 18px;
+  margin: 0 !important;
 }
 
 .quick-actions .el-button--primary {
