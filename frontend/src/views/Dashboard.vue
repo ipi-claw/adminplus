@@ -835,25 +835,41 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  align-items: stretch;
 }
 
 .quick-actions :deep(.el-button) {
   width: 100%;
+  min-height: 50px !important;
   height: 50px !important;
   font-size: 14px;
   transition: all 0.3s;
   border-radius: 8px;
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 8px;
-  padding: 0 !important;
-  line-height: 1 !important;
+  gap: 8px !important;
+  padding: 0 20px !important;
+  line-height: normal !important;
+  box-sizing: border-box !important;
+}
+
+.quick-actions :deep(.el-button > *) {
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: normal !important;
 }
 
 .quick-actions :deep(.el-button .el-icon) {
-  font-size: 18px;
+  font-size: 18px !important;
   margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.quick-actions :deep(.el-button span) {
+  line-height: normal !important;
+  display: inline-block !important;
 }
 
 .quick-actions .el-button--primary {
