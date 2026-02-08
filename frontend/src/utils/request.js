@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
+import { decryptData, encryptData } from '@/utils/encryption'
 
 // Token 刷新机制
 let isRefreshing = false
@@ -29,7 +30,8 @@ const onRefreshed = (newToken) => {
  */
 const refreshToken = async () => {
   try {
-    const refreshTokenValue = sessionStorage.getItem('refreshToken')
+    // 解密获取 refresh token
+    const refreshTokenValue = decryptData(sessionStorage.getItem('refreshToken'))
     if (!refreshTokenValue) {
       throw new Error('No refresh token available')
     }
@@ -41,10 +43,10 @@ const refreshToken = async () => {
 
     const { token, refreshToken: newRefreshToken } = response.data
 
-    // 更新 sessionStorage
-    sessionStorage.setItem('token', token)
+    // 加密更新 sessionStorage
+    sessionStorage.setItem('token', encryptData(token))
     if (newRefreshToken) {
-      sessionStorage.setItem('refreshToken', newRefreshToken)
+      sessionStorage.setItem('refreshToken', encryptData(newRefreshToken))
     }
 
     return token
@@ -60,6 +62,7 @@ const refreshToken = async () => {
  * 清除用户信息并跳转到登录页
  */
 const clearUserInfoAndRedirect = () => {
+  // 清除所有加密的 sessionStorage 数据
   sessionStorage.removeItem('token')
   sessionStorage.removeItem('refreshToken')
   sessionStorage.removeItem('user')
@@ -75,10 +78,18 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   config => {
-    const token = sessionStorage.getItem('token')
+    // 解密获取 token
+    const token = decryptData(sessionStorage.getItem('token'))
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // CSRF 防护：从 sessionStorage 获取 CSRF token 并添加到请求头
+    const csrfToken = sessionStorage.getItem('csrfToken')
+    if (csrfToken) {
+      config.headers['X-CSRF-TOKEN'] = csrfToken
+    }
+
     return config
   },
   error => {
@@ -90,6 +101,13 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   response => {
     const { code, message, data } = response.data
+
+    // CSRF 防护：从响应头获取新的 CSRF token 并存储
+    const csrfToken = response.headers['x-csrf-token']
+    if (csrfToken) {
+      sessionStorage.setItem('csrfToken', csrfToken)
+    }
+
     console.log('[Request] 响应成功:', response.config.url, { code, message, data })
 
     if (code === 200) {

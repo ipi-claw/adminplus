@@ -2,37 +2,42 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { login as loginApi, getCurrentUser, getCurrentUserPermissions } from '@/api/auth'
 import { assignRoles as assignRolesApi, getUserRoleIds as getUserRoleIdsApi } from '@/api/user'
+import { encryptData, decryptData } from '@/utils/encryption'
 
 export const useUserStore = defineStore('user', () => {
-  const token = ref(sessionStorage.getItem('token') || '')
-  const user = ref(JSON.parse(sessionStorage.getItem('user') || 'null'))
-  const permissions = ref(JSON.parse(sessionStorage.getItem('permissions') || '[]'))
+  // 从加密的 sessionStorage 中读取数据
+  const token = ref(decryptData(sessionStorage.getItem('token')) || '')
+  const user = ref(JSON.parse(decryptData(sessionStorage.getItem('user')) || 'null'))
+  const permissions = ref(JSON.parse(decryptData(sessionStorage.getItem('permissions')) || '[]'))
 
   /**
-   * 设置 token
+   * 设置 token（加密存储）
    * @param {string} val - token 值
    */
   const setToken = (val) => {
     token.value = val
-    sessionStorage.setItem('token', val)
+    // 加密存储 token
+    sessionStorage.setItem('token', encryptData(val))
   }
 
   /**
-   * 设置用户信息
+   * 设置用户信息（加密存储）
    * @param {Object} val - 用户信息
    */
   const setUser = (val) => {
     user.value = val
-    sessionStorage.setItem('user', JSON.stringify(val))
+    // 加密存储用户信息
+    sessionStorage.setItem('user', encryptData(JSON.stringify(val)))
   }
 
   /**
-   * 设置权限列表
+   * 设置权限列表（加密存储）
    * @param {string[]} val - 权限列表
    */
   const setPermissions = (val) => {
     permissions.value = val || []
-    sessionStorage.setItem('permissions', JSON.stringify(val || []))
+    // 加密存储权限列表
+    sessionStorage.setItem('permissions', encryptData(JSON.stringify(val || [])))
   }
 
   /**
@@ -78,9 +83,12 @@ export const useUserStore = defineStore('user', () => {
     token.value = ''
     user.value = null
     permissions.value = []
+    // 清除加密的 sessionStorage 数据
     sessionStorage.removeItem('token')
     sessionStorage.removeItem('user')
     sessionStorage.removeItem('permissions')
+    // 同时清除 refreshToken（如果存在）
+    sessionStorage.removeItem('refreshToken')
   }
 
   /**
