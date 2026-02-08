@@ -47,8 +47,9 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // 生产环境移除 console
-        drop_debugger: true // 移除 debugger
+        // 生产环境移除 console（暂时禁用以便调试）
+        // drop_console: true,
+        // drop_debugger: true // 移除 debugger
       }
     },
     // chunk 大小警告阈值 (KB)

@@ -39,25 +39,46 @@ public class DashboardController {
     @GetMapping("/user-growth")
     @Operation(summary = "获取用户增长趋势")
     public ApiResponse<ChartDataVO> getUserGrowth() {
-        log.info("获取用户增长趋势数据");
-        ChartDataVO data = dashboardService.getUserGrowthData();
-        return ApiResponse.ok(data);
+        log.info("获取用户增长趋势数据 - 开始");
+        try {
+            ChartDataVO data = dashboardService.getUserGrowthData();
+            log.info("获取用户增长趋势数据 - 成功, labels: {}, values: {}",
+                     data.labels(), data.values());
+            return ApiResponse.ok(data);
+        } catch (Exception e) {
+            log.error("获取用户增长趋势数据 - 失败", e);
+            throw e;
+        }
     }
 
     @GetMapping("/role-distribution")
     @Operation(summary = "获取角色分布")
     public ApiResponse<ChartDataVO> getRoleDistribution() {
-        log.info("获取角色分布数据");
-        ChartDataVO data = dashboardService.getRoleDistributionData();
-        return ApiResponse.ok(data);
+        log.info("获取角色分布数据 - 开始");
+        try {
+            ChartDataVO data = dashboardService.getRoleDistributionData();
+            log.info("获取角色分布数据 - 成功, labels: {}, values: {}",
+                     data.labels(), data.values());
+            return ApiResponse.ok(data);
+        } catch (Exception e) {
+            log.error("获取角色分布数据 - 失败", e);
+            throw e;
+        }
     }
 
     @GetMapping("/menu-distribution")
     @Operation(summary = "获取菜单类型分布")
     public ApiResponse<ChartDataVO> getMenuDistribution() {
-        log.info("获取菜单类型分布数据");
-        ChartDataVO data = dashboardService.getMenuDistributionData();
-        return ApiResponse.ok(data);
+        log.info("获取菜单类型分布数据 - 开始");
+        try {
+            ChartDataVO data = dashboardService.getMenuDistributionData();
+            log.info("获取菜单类型分布数据 - 成功, labels: {}, values: {}",
+                     data.labels(), data.values());
+            return ApiResponse.ok(data);
+        } catch (Exception e) {
+            log.error("获取菜单类型分布数据 - 失败", e);
+            throw e;
+        }
     }
 
     @GetMapping("/recent-logs")

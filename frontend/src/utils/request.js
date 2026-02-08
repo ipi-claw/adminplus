@@ -90,17 +90,22 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   response => {
     const { code, message, data } = response.data
+    console.log('[Request] 响应成功:', response.config.url, { code, message, data })
 
     if (code === 200) {
       return data
     } else {
+      console.error('[Request] 响应失败:', response.config.url, { code, message })
       ElMessage.error(message || '请求失败')
       return Promise.reject(new Error(message || '请求失败'))
     }
   },
   async error => {
+    console.error('[Request] 请求错误:', error.config?.url, error)
+
     if (error.response) {
-      const { status } = error.response
+      const { status, data } = error.response
+      console.error('[Request] 错误响应:', { status, data })
 
       if (status === 401) {
         const originalConfig = error.config

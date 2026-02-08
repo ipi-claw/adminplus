@@ -65,7 +65,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public ChartDataVO getUserGrowthData() {
-        log.debug("获取用户增长趋势数据");
+        log.debug("获取用户增长趋势数据 - 开始");
 
         // 获取最近7天的日期
         List<String> dates = new ArrayList<>();
@@ -83,32 +83,38 @@ public class DashboardServiceImpl implements DashboardService {
             Instant endOfDay = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
             long count = userRepository.countByCreateTimeBetweenAndDeletedFalse(startOfDay, endOfDay);
             values.add(count);
+            log.debug("日期: {}, 新增用户数: {}", date, count);
         }
 
+        log.debug("获取用户增长趋势数据 - 完成, 日期数: {}, 值数: {}", dates.size(), values.size());
         return new ChartDataVO(dates, values);
     }
 
     @Override
     public ChartDataVO getRoleDistributionData() {
-        log.debug("获取角色分布数据");
+        log.debug("获取角色分布数据 - 开始");
 
         List<String> roleNames = new ArrayList<>();
         List<Long> userCounts = new ArrayList<>();
 
         // 获取所有角色及其用户数
         List<RoleEntity> roles = roleRepository.findByDeletedFalse();
+        log.debug("找到角色数: {}", roles.size());
+
         for (RoleEntity role : roles) {
             roleNames.add(role.getName());
             List<UserRoleEntity> userRoles = userRoleRepository.findByRoleId(role.getId());
             userCounts.add((long) userRoles.size());
+            log.debug("角色: {}, 用户数: {}", role.getName(), userRoles.size());
         }
 
+        log.debug("获取角色分布数据 - 完成, 角色数: {}", roleNames.size());
         return new ChartDataVO(roleNames, userCounts);
     }
 
     @Override
     public ChartDataVO getMenuDistributionData() {
-        log.debug("获取菜单类型分布数据");
+        log.debug("获取菜单类型分布数据 - 开始");
 
         List<String> types = List.of("目录", "菜单", "按钮");
         List<Long> counts = new ArrayList<>();
@@ -122,6 +128,8 @@ public class DashboardServiceImpl implements DashboardService {
         counts.add(menuCount);
         counts.add(buttonCount);
 
+        log.debug("获取菜单类型分布数据 - 完成, 目录: {}, 菜单: {}, 按钮: {}",
+                 directoryCount, menuCount, buttonCount);
         return new ChartDataVO(types, counts);
     }
 
