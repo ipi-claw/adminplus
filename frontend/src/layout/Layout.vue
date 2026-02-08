@@ -1,15 +1,15 @@
 <template>
   <el-container class="layout-container">
-    <el-aside width="200px">
+    <el-aside width="240px">
       <div class="logo">
         <h2>AdminPlus</h2>
       </div>
       <el-menu
         :default-active="activeMenu"
         router
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
+        background-color="#FFFFFF"
+        text-color="#333333"
+        active-text-color="#0066FF"
       >
         <el-menu-item index="/dashboard">
           <el-icon><HomeFilled /></el-icon>
@@ -44,7 +44,7 @@
     <el-container>
       <el-header>
         <div class="header-left">
-          <span style="color: #333">欢迎，{{ userStore.user?.nickname || userStore.user?.username }}</span>
+          <span class="welcome-text">欢迎，{{ userStore.user?.nickname || userStore.user?.username }}</span>
         </div>
         <div class="header-right">
           <el-dropdown @command="handleCommand">
@@ -118,30 +118,43 @@ const handleCommand = async (command) => {
 }
 
 .el-aside {
-  background-color: #304156;
+  background-color: #FFFFFF;
+  border-right: 1px solid #E5E7EB;
   overflow-x: hidden;
+  transition: width 0.3s;
 }
 
 .logo {
   height: 60px;
   line-height: 60px;
   text-align: center;
-  color: #fff;
-  font-size: 18px;
+  color: #0066FF;
+  font-size: 20px;
   font-weight: bold;
-  background-color: #2b3a4a;
+  background: linear-gradient(135deg, #0066FF 0%, #7B5FD6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .el-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  background-color: #FFFFFF;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  padding: 0 24px;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .header-left {
   font-size: 16px;
+}
+
+.welcome-text {
+  color: #1A1A1A;
+  font-weight: 500;
 }
 
 .header-right {
@@ -154,10 +167,55 @@ const handleCommand = async (command) => {
   align-items: center;
   cursor: pointer;
   font-size: 20px;
+  color: #0066FF;
+  transition: color 0.3s;
+}
+
+.el-dropdown-link:hover {
+  color: #3385FF;
 }
 
 .el-main {
-  background-color: #f0f2f5;
+  background-color: #F7F8FA;
   padding: 20px;
+}
+
+/* 菜单样式 */
+:deep(.el-menu) {
+  border-right: none;
+}
+
+:deep(.el-menu-item) {
+  border-right: 3px solid transparent;
+  transition: all 0.3s;
+  margin: 4px 8px;
+  border-radius: 8px;
+}
+
+:deep(.el-menu-item.is-active) {
+  background-color: #E8F0FE !important;
+  color: #0066FF !important;
+  font-weight: 600;
+}
+
+:deep(.el-menu-item:hover) {
+  background-color: #F5F7FA;
+  color: #0066FF;
+}
+
+:deep(.el-sub-menu__title) {
+  margin: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+:deep(.el-sub-menu__title:hover) {
+  background-color: #F5F7FA;
+  color: #0066FF;
+}
+
+:deep(.el-sub-menu .el-menu-item) {
+  margin: 4px 8px 4px 24px;
+  border-radius: 6px;
 }
 </style>

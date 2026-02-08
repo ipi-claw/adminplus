@@ -1,0 +1,118 @@
+// ============================================
+// Element Plus 主题变量 - 智谱AI风格
+// ============================================
+
+@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+  // 主色调 - 科技蓝
+  $colors: (
+    'primary': (
+      'base': #0066FF,
+    ),
+    'success': (
+      'base': #10B981,
+    ),
+    'warning': (
+      'base': #F59E0B,
+    ),
+    'danger': (
+      'base': #EF4444,
+    ),
+    'error': (
+      'base': #EF4444,
+    ),
+    'info': (
+      'base': #3B82F6,
+    ),
+  ),
+
+  // 文字颜色
+  $text-color: (
+    'primary': #1A1A1A,
+    'regular': #333333,
+    'secondary': #666666,
+    'placeholder': #999999,
+    'disabled': #CCCCCC,
+  ),
+
+  // 边框颜色
+  $border-color: (
+    '': #E5E7EB,
+    'light': #F0F0F0,
+    'lighter': #F2F6FC,
+    'extra-light': #FAFAFA,
+    'dark': #D1D5DB,
+    'darker': #C0C4CC,
+  ),
+
+  // 背景颜色
+  $fill-color: (
+    '': #F7F8FA,
+    'light': #F5F7FA,
+    'lighter': #FAFBFC,
+    'extra-light': #FAFAFA,
+    'dark': #EBEDF0,
+    'darker': #E6E8EB,
+    'blank': #FFFFFF,
+  ),
+
+  // 圆角
+  $border-radius: (
+    'base': 8px,
+    'small': 4px,
+    'large': 12px,
+    'round': 9999px,
+    'circle': 50%,
+  ),
+
+  // 字体大小
+  $font-size: (
+    'extra-large': 20px,
+    'large': 18px,
+    'medium': 16px,
+    'base': 14px,
+    'small': 13px,
+    'extra-small': 12px,
+  ),
+
+  // 阴影
+  $box-shadow: (
+    '': 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    'light': 0 1px 2px 0 rgba(0, 0, 0, 0.05),
+    'lighter': 0 0 6px rgba(0, 0, 0, 0.05),
+    'dark': 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  ),
+
+  // 过渡动画
+  $transition-duration: (
+    '': 0.3s,
+    'fast': 0.15s,
+  ),
+);
+
+// 覆盖特定组件样式
+// 按钮
+$button-font-weight: 600;
+
+// 输入框
+$input-border-radius: 8px;
+
+// 卡片
+$card-border-radius: 12px;
+$card-padding: 20px;
+
+// 对话框
+$dialog-border-radius: 16px;
+
+// 菜单
+$menu-item-height: 48px;
+$menu-horizontal-item-padding: 16px;
+$menu-vertical-item-padding: 0 16px;
+
+// 表格
+$table-border-color: #E5E7EB;
+$table-header-bg-color: #F7F8FA;
+$table-row-hover-bg-color: #F5F7FA;
+
+// 分页
+$pagination-font-size: 14px;
+$pagination-button-border-radius: 8px;

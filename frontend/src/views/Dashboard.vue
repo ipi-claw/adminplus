@@ -5,7 +5,7 @@
       <el-col :span="6">
         <el-card v-loading="loading" shadow="hover" class="stat-card-wrapper">
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+            <div class="stat-icon stat-icon-user">
               <el-icon :size="40"><User /></el-icon>
             </div>
             <div class="stat-content">
@@ -19,7 +19,7 @@
       <el-col :span="6">
         <el-card v-loading="loading" shadow="hover" class="stat-card-wrapper">
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
+            <div class="stat-icon stat-icon-role">
               <el-icon :size="40"><UserFilled /></el-icon>
             </div>
             <div class="stat-content">
@@ -33,7 +33,7 @@
       <el-col :span="6">
         <el-card v-loading="loading" shadow="hover" class="stat-card-wrapper">
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
+            <div class="stat-icon stat-icon-menu">
               <el-icon :size="40"><Menu /></el-icon>
             </div>
             <div class="stat-content">
@@ -47,7 +47,7 @@
       <el-col :span="6">
         <el-card v-loading="loading" shadow="hover" class="stat-card-wrapper">
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)">
+            <div class="stat-icon stat-icon-log">
               <el-icon :size="40"><Document /></el-icon>
             </div>
             <div class="stat-content">
@@ -382,16 +382,16 @@ const fetchUserGrowth = async () => {
           data: data.values,
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(102, 126, 234, 0.3)' },
-              { offset: 1, color: 'rgba(102, 126, 234, 0.05)' }
+              { offset: 0, color: 'rgba(0, 102, 255, 0.3)' },
+              { offset: 1, color: 'rgba(0, 102, 255, 0.05)' }
             ])
           },
           lineStyle: {
-            color: '#667eea',
+            color: '#0066FF',
             width: 3
           },
           itemStyle: {
-            color: '#667eea'
+            color: '#0066FF'
           }
         }
       ]
@@ -443,7 +443,10 @@ const fetchRoleDistribution = async () => {
           },
           data: data.labels.map((label, index) => ({
             value: data.values[index],
-            name: label
+            name: label,
+            itemStyle: {
+              color: ['#0066FF', '#7B5FD6', '#10B981', '#F59E0B', '#EF4444'][index % 5]
+            }
           }))
         }
       ]
@@ -486,9 +489,9 @@ const fetchMenuDistribution = async () => {
           data: data.values,
           itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#83bff6' },
-              { offset: 0.5, color: '#188df0' },
-              { offset: 1, color: '#188df0' }
+              { offset: 0, color: '#3385FF' },
+              { offset: 0.5, color: '#0066FF' },
+              { offset: 1, color: '#0052CC' }
             ]),
             borderRadius: [4, 4, 0, 0]
           }
@@ -671,6 +674,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .dashboard {
   padding: 20px;
+  background-color: #F7F8FA;
+  min-height: 100%;
 }
 
 .stat-card-wrapper {
@@ -679,7 +684,7 @@ onBeforeUnmount(() => {
 
 .stat-card-wrapper:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 16px rgba(0, 102, 255, 0.15);
 }
 
 .stat-card {
@@ -687,6 +692,7 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
+/* 智谱AI风格统计卡片渐变色 */
 .stat-icon {
   width: 80px;
   height: 80px;
@@ -696,7 +702,23 @@ onBeforeUnmount(() => {
   justify-content: center;
   color: #fff;
   margin-right: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.2);
+}
+
+.stat-icon-user {
+  background: linear-gradient(135deg, #0066FF 0%, #7B5FD6 100%);
+}
+
+.stat-icon-role {
+  background: linear-gradient(135deg, #7B5FD6 0%, #9F7AEA 100%);
+}
+
+.stat-icon-menu {
+  background: linear-gradient(135deg, #0066FF 0%, #3385FF 100%);
+}
+
+.stat-icon-log {
+  background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
 }
 
 .stat-content {
@@ -706,7 +728,7 @@ onBeforeUnmount(() => {
 .stat-value {
   font-size: 32px;
   font-weight: bold;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0066FF 0%, #7B5FD6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -714,7 +736,7 @@ onBeforeUnmount(() => {
 
 .stat-label {
   font-size: 14px;
-  color: #999;
+  color: #666666;
   margin-top: 8px;
 }
 
@@ -723,7 +745,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   font-weight: 600;
-  color: #333;
+  color: #1A1A1A;
 }
 
 .quick-actions {
@@ -737,11 +759,32 @@ onBeforeUnmount(() => {
   height: 50px;
   font-size: 14px;
   transition: all 0.3s;
+  border-radius: 8px;
+}
+
+.quick-actions .el-button--primary {
+  background: linear-gradient(135deg, #0066FF 0%, #7B5FD6 100%);
+  border: none;
+}
+
+.quick-actions .el-button--success {
+  background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+  border: none;
+}
+
+.quick-actions .el-button--warning {
+  background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+  border: none;
+}
+
+.quick-actions .el-button--info {
+  background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+  border: none;
 }
 
 .quick-actions .el-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.25);
 }
 
 .system-info {
@@ -753,7 +796,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .info-item:last-child {
@@ -762,12 +805,12 @@ onBeforeUnmount(() => {
 
 .info-label {
   font-size: 14px;
-  color: #666;
+  color: #666666;
 }
 
 .info-value {
   font-size: 14px;
-  color: #333;
+  color: #1A1A1A;
   font-weight: 500;
 }
 
@@ -778,7 +821,7 @@ onBeforeUnmount(() => {
 
 .empty-text {
   text-align: center;
-  color: #999;
+  color: #999999;
   padding: 40px 0;
 }
 
@@ -786,12 +829,13 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   padding: 12px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #E5E7EB;
   transition: background-color 0.3s;
+  border-radius: 6px;
 }
 
 .online-user-item:hover {
-  background-color: #f9f9f9;
+  background-color: #F5F7FA;
 }
 
 .online-user-item:last-child {
@@ -805,13 +849,13 @@ onBeforeUnmount(() => {
 
 .user-name {
   font-size: 14px;
-  color: #333;
+  color: #1A1A1A;
   font-weight: 500;
 }
 
 .user-ip {
   font-size: 12px;
-  color: #999;
+  color: #999999;
   margin-top: 4px;
 }
 
@@ -844,11 +888,11 @@ onBeforeUnmount(() => {
 }
 
 .online-users::-webkit-scrollbar-thumb {
-  background-color: #dcdfe6;
+  background-color: #D1D5DB;
   border-radius: 3px;
 }
 
 .online-users::-webkit-scrollbar-track {
-  background-color: #f5f7fa;
+  background-color: #F7F8FA;
 }
 </style>

@@ -143,11 +143,13 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0066FF 0%, #7B5FD6 100%);
 }
 
 .login-card {
   width: 400px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 102, 255, 0.2);
 }
 
 .card-header {
@@ -156,12 +158,18 @@ onMounted(() => {
 
 .card-header h2 {
   margin: 0 0 10px 0;
-  color: #333;
+  color: #0066FF;
+  font-size: 28px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #0066FF 0%, #7B5FD6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .card-header p {
   margin: 0;
-  color: #999;
+  color: #666666;
   font-size: 14px;
 }
 
@@ -175,9 +183,15 @@ onMounted(() => {
   width: 120px;
   height: 40px;
   cursor: pointer;
-  border-radius: 4px;
-  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
   flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.captcha-image:hover {
+  border-color: #0066FF;
+  box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.1);
 }
 
 .image-placeholder {
@@ -187,14 +201,49 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  color: #999;
-  background-color: #f5f7fa;
+  color: #999999;
+  background-color: #F7F8FA;
+  border-radius: 8px;
 }
 
 .login-footer {
   text-align: center;
-  color: #999;
+  color: #999999;
   font-size: 12px;
   margin-top: 20px;
+}
+
+/* 登录按钮样式 */
+:deep(.el-button--primary) {
+  background: linear-gradient(135deg, #0066FF 0%, #7B5FD6 100%);
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  height: 48px;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+:deep(.el-button--primary:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 102, 255, 0.3);
+}
+
+:deep(.el-button--primary:active) {
+  transform: translateY(0);
+}
+
+/* 输入框样式 */
+:deep(.el-input__wrapper) {
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+:deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px #0066FF inset;
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #0066FF inset;
 }
 </style>
