@@ -39,10 +39,12 @@ export const useUserStore = defineStore('user', () => {
    * 用户登录
    * @param {string} username - 用户名
    * @param {string} password - 密码
+   * @param {string} captchaCode - 验证码
+   * @param {string} captchaId - 验证码ID
    * @returns {Promise<Object>} 登录结果，包含 token、user、permissions
    */
-  const login = async (username, password) => {
-    const data = await loginApi({ username, password })
+  const login = async (username, password, captchaCode, captchaId) => {
+    const data = await loginApi({ username, password, captchaCode, captchaId })
     setToken(data.token)
     setUser(data.user)
     setPermissions(data.permissions || [])

@@ -5,6 +5,8 @@ import request from '@/utils/request'
  * @param {Object} data - 登录信息
  * @param {string} data.username - 用户名
  * @param {string} data.password - 密码
+ * @param {string} data.captchaCode - 验证码
+ * @param {string} data.captchaId - 验证码ID
  * @returns {Promise<Object>} 登录结果，包含 token、user、permissions
  */
 export const login = (data) => {
