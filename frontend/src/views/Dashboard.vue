@@ -314,6 +314,11 @@ let userGrowthChart = null
 let roleDistributionChart = null
 let menuDistributionChart = null
 
+// 图表数据状态
+const userGrowthEmpty = ref(false)
+const roleDistributionEmpty = ref(false)
+const menuDistributionEmpty = ref(false)
+
 // 最近操作日志
 const recentLogs = ref([])
 
@@ -356,6 +361,25 @@ const fetchStats = async () => {
 const fetchUserGrowth = async () => {
   try {
     const data = await getUserGrowth()
+    
+    // 检查数据是否为空
+    if (!data.labels || data.labels.length === 0 || !data.values || data.values.length === 0) {
+      // 数据为空，显示空状态
+      userGrowthChart.clear()
+      userGrowthChart.setOption({
+        title: {
+          text: '暂无数据',
+          left: 'center',
+          top: 'center',
+          textStyle: {
+            color: '#999',
+            fontSize: 16
+          }
+        }
+      })
+      return
+    }
+    
     const option = {
       tooltip: {
         trigger: 'axis'
@@ -397,7 +421,9 @@ const fetchUserGrowth = async () => {
       ]
     }
     userGrowthChart.setOption(option)
-  } catch {
+  } catch (error) {
+    // 只有真正的接口错误才显示错误提示
+    console.error('获取用户增长趋势失败:', error)
     ElMessage.error('获取用户增长趋势失败')
   }
 }
@@ -406,6 +432,25 @@ const fetchUserGrowth = async () => {
 const fetchRoleDistribution = async () => {
   try {
     const data = await getRoleDistribution()
+    
+    // 检查数据是否为空
+    if (!data.labels || data.labels.length === 0 || !data.values || data.values.length === 0) {
+      // 数据为空，显示空状态
+      roleDistributionChart.clear()
+      roleDistributionChart.setOption({
+        title: {
+          text: '暂无数据',
+          left: 'center',
+          top: 'center',
+          textStyle: {
+            color: '#999',
+            fontSize: 16
+          }
+        }
+      })
+      return
+    }
+    
     const option = {
       tooltip: {
         trigger: 'item',
@@ -452,7 +497,9 @@ const fetchRoleDistribution = async () => {
       ]
     }
     roleDistributionChart.setOption(option)
-  } catch {
+  } catch (error) {
+    // 只有真正的接口错误才显示错误提示
+    console.error('获取角色分布失败:', error)
     ElMessage.error('获取角色分布失败')
   }
 }
@@ -461,6 +508,25 @@ const fetchRoleDistribution = async () => {
 const fetchMenuDistribution = async () => {
   try {
     const data = await getMenuDistribution()
+    
+    // 检查数据是否为空
+    if (!data.labels || data.labels.length === 0 || !data.values || data.values.length === 0) {
+      // 数据为空，显示空状态
+      menuDistributionChart.clear()
+      menuDistributionChart.setOption({
+        title: {
+          text: '暂无数据',
+          left: 'center',
+          top: 'center',
+          textStyle: {
+            color: '#999',
+            fontSize: 16
+          }
+        }
+      })
+      return
+    }
+    
     const option = {
       tooltip: {
         trigger: 'axis',
@@ -499,7 +565,9 @@ const fetchMenuDistribution = async () => {
       ]
     }
     menuDistributionChart.setOption(option)
-  } catch {
+  } catch (error) {
+    // 只有真正的接口错误才显示错误提示
+    console.error('获取菜单类型分布失败:', error)
     ElMessage.error('获取菜单类型分布失败')
   }
 }
