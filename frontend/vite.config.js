@@ -29,14 +29,6 @@ export default defineConfig({
     // 代码分割优化
     rollupOptions: {
       output: {
-        manualChunks: {
-          // 将 Vue 相关库打包到一个 chunk
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          // 将 Element Plus 打包到一个 chunk
-          'element-plus': ['element-plus'],
-          // 将其他第三方库打包到 vendors
-          'vendors': ['axios']
-        },
         // 压缩配置
         chunkFileNames: 'js/[name]-[hash].js',
         entryFileNames: 'js/[name]-[hash].js',
