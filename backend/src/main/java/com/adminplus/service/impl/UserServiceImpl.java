@@ -179,6 +179,9 @@ public class UserServiceImpl implements UserService {
 
         user = userRepository.save(user);
 
+        // 记录审计日志
+        logService.log("用户管理", OperationType.CREATE, "创建用户: " + user.getUsername());
+
         return new UserVO(
                 user.getId(),
                 user.getUsername(),
@@ -252,6 +255,9 @@ public class UserServiceImpl implements UserService {
 
         user.setStatus(status);
         userRepository.save(user);
+
+        // 记录审计日志
+        logService.log("用户管理", OperationType.UPDATE, "更新用户状态: " + user.getUsername() + " -> " + status);
     }
 
     @Override
@@ -294,6 +300,17 @@ public class UserServiceImpl implements UserService {
                 return userRole;
             }).toList();
             userRoleRepository.saveAll(userRoles);
+        }
+
+        // 记录审计日志
+        var user = userRepository.findById(userId).orElse(null);
+        if (user != null) {
+            String roleNames = roleIds.stream()
+                    .map(roleId -> roleRepository.findById(roleId).orElse(null))
+                    .filter(Objects::nonNull)
+                    .map(RoleEntity::getName)
+                    .collect(Collectors.joining(", "));
+            logService.log("用户管理", OperationType.UPDATE, "分配角色: " + user.getUsername() + " -> " + roleNames);
         }
     }
 

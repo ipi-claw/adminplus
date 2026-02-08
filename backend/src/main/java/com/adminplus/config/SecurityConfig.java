@@ -139,12 +139,30 @@ public class SecurityConfig {
 
     /**
      * 安全过滤器链
+     *
+     * CSRF 保护说明：
+     * - 对于使用 JWT 认证的 REST API（/api/**），CSRF 保护通过忽略请求来实现
+     * - 这是因为 JWT Token 本身已经提供了防 CSRF 保护（通过 Authorization 头）
+     * - 如果前端使用 Cookie 存储 JWT，则需要启用 CSRF 保护
+     * - 当前实现：API 端点忽略 CSRF（JWT Bearer Token 方式），其他端点启用 CSRF
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                // 对于 REST API，禁用 CSRF 但启用 CORS 限制作为替代防护
-                .csrf(AbstractHttpConfigurer::disable)
+                // 启用 CSRF 保护，使用 CookieCsrfTokenRepository
+                // 注意：对于使用 Bearer Token 的 REST API，可以安全地忽略 CSRF
+                // 如果使用 Cookie 存储 JWT，应该移除 ignoringRequestMatchers 配置
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        // 仅忽略认证相关端点（登录、注册）和公开端点
+                        // 其他 API 端点使用 JWT Bearer Token，不依赖 Cookie，可安全忽略 CSRF
+                        .ignoringRequestMatchers(
+                                "/auth/**",           // 认证相关端点（登录、注册、登出）
+                                "/captcha/**",        // 验证码端点
+                                "/uploads/**",        // 公开的上传文件访问
+                                "/actuator/health"    // 健康检查端点
+                        )
+                )
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // 公开端点

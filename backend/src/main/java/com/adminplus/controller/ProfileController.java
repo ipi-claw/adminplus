@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,6 +34,7 @@ public class ProfileController {
 
     @GetMapping
     @Operation(summary = "获取当前用户信息")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<ProfileVO> getProfile() {
         ProfileVO profile = profileService.getCurrentUserProfile();
         return ApiResponse.ok(profile);
@@ -40,6 +42,7 @@ public class ProfileController {
 
     @PutMapping
     @Operation(summary = "更新当前用户信息")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<ProfileVO> updateProfile(@Valid @RequestBody ProfileUpdateReq req) {
         ProfileVO profile = profileService.updateCurrentProfile(req);
         return ApiResponse.ok(profile);
@@ -47,6 +50,7 @@ public class ProfileController {
 
     @PostMapping("/password")
     @Operation(summary = "修改密码")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> changePassword(@Valid @RequestBody PasswordChangeReq req) {
         profileService.changePassword(req);
         return ApiResponse.ok();
@@ -54,6 +58,7 @@ public class ProfileController {
 
     @PostMapping("/avatar")
     @Operation(summary = "上传头像")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<AvatarUploadResp> uploadAvatar(@RequestParam("file") MultipartFile file) {
         String avatarUrl = profileService.uploadAvatar(file);
 
@@ -66,6 +71,7 @@ public class ProfileController {
 
     @GetMapping("/settings")
     @Operation(summary = "获取用户设置")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<SettingsVO> getSettings() {
         SettingsVO settings = profileService.getSettings();
         return ApiResponse.ok(settings);
@@ -73,6 +79,7 @@ public class ProfileController {
 
     @PutMapping("/settings")
     @Operation(summary = "更新用户设置")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<SettingsVO> updateSettings(@Valid @RequestBody SettingsUpdateReq req) {
         SettingsVO settings = profileService.updateSettings(req);
         return ApiResponse.ok(settings);

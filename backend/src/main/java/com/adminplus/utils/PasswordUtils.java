@@ -10,9 +10,9 @@ import java.util.regex.Pattern;
  */
 public class PasswordUtils {
 
-    // 密码强度规则：至少8位，包含大小写字母和数字
+    // 密码强度规则：至少8位，包含大小写字母、数字和特殊字符
     private static final Pattern STRONG_PASSWORD_PATTERN = Pattern.compile(
-            "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$"
+            "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$"
     );
 
     // 中等密码：至少6位
@@ -93,6 +93,10 @@ public class PasswordUtils {
 
         if (!password.matches(".*[A-Z].*")) {
             hint.append("密码必须包含大写字母；");
+        }
+
+        if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+            hint.append("密码必须包含特殊字符；");
         }
 
         if (hint.length() == 0) {

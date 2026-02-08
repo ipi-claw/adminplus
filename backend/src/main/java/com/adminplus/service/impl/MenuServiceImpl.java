@@ -1,10 +1,12 @@
 package com.adminplus.service.impl;
 
+import com.adminplus.constants.OperationType;
 import com.adminplus.dto.MenuCreateReq;
 import com.adminplus.dto.MenuUpdateReq;
 import com.adminplus.entity.MenuEntity;
 import com.adminplus.exception.BizException;
 import com.adminplus.repository.MenuRepository;
+import com.adminplus.service.LogService;
 import com.adminplus.service.MenuService;
 import com.adminplus.vo.MenuVO;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 public class MenuServiceImpl implements MenuService {
 
     private final MenuRepository menuRepository;
+    private final LogService logService;
 
     @Override
     @Transactional(readOnly = true)
@@ -147,6 +150,9 @@ public class MenuServiceImpl implements MenuService {
 
         menu = menuRepository.save(menu);
 
+        // 记录审计日志
+        logService.log("菜单管理", OperationType.CREATE, "创建菜单: " + menu.getName());
+
         return new MenuVO(
                 menu.getId(),
                 menu.getParentId(),
@@ -225,5 +231,8 @@ public class MenuServiceImpl implements MenuService {
         }
 
         menuRepository.delete(menu);
+
+        // 记录审计日志
+        logService.log("菜单管理", OperationType.DELETE, "删除菜单: " + menu.getName());
     }
 }

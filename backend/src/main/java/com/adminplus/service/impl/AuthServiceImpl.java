@@ -7,8 +7,11 @@ import com.adminplus.entity.UserRoleEntity;
 import com.adminplus.exception.BizException;
 import com.adminplus.repository.RoleRepository;
 import com.adminplus.repository.UserRoleRepository;
+import com.adminplus.constants.LogStatus;
+import com.adminplus.constants.OperationType;
 import com.adminplus.service.AuthService;
 import com.adminplus.service.CaptchaService;
+import com.adminplus.service.LogService;
 import com.adminplus.service.PermissionService;
 import com.adminplus.service.RefreshTokenService;
 import com.adminplus.service.TokenBlacklistService;
@@ -56,6 +59,7 @@ public class AuthServiceImpl implements AuthService {
     private final CaptchaService captchaService;
     private final TokenBlacklistService tokenBlacklistService;
     private final RefreshTokenService refreshTokenService;
+    private final LogService logService;
 
     @Override
     public LoginResp login(UserLoginReq req) {
@@ -116,10 +120,18 @@ public class AuthServiceImpl implements AuthService {
             // 生成 Refresh Token
             String refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
+            // 记录登录审计日志
+            logService.log("认证管理", OperationType.OTHER, "用户登录成功: " + maskUsername(req.username()));
+
             return new LoginResp(token, refreshToken, "Bearer", userVO, permissions);
 
         } catch (AuthenticationException e) {
             log.error("登录失败: username={}", maskUsername(req.username()));
+
+            // 记录登录失败审计日志
+            logService.log("认证管理", OperationType.OTHER, "用户登录失败: " + maskUsername(req.username()),
+                    LogStatus.FAILED, "用户名或密码错误");
+
             throw new BizException("用户名或密码错误");
         }
     }
@@ -162,6 +174,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             // 获取当前用户ID
             Long userId = SecurityUtils.getCurrentUserId();
+            String username = SecurityUtils.getCurrentUsername();
 
             // 撤销用户的所有 Refresh Token
             refreshTokenService.revokeAllUserTokens(userId);
@@ -187,6 +200,10 @@ public class AuthServiceImpl implements AuthService {
                 tokenBlacklistService.blacklistAllUserTokens(userId);
                 log.info("用户登出，所有 Token 已加入黑名单: userId={}", userId);
             }
+
+            // 记录登出审计日志
+            logService.log("认证管理", OperationType.OTHER, "用户��出: " + maskUsername(username));
+
         } catch (Exception e) {
             log.error("登出时处理 Token 黑名单失败", e);
             // 即使失败也不影响登出流程

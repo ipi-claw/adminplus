@@ -63,6 +63,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "用户登出")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> logout() {
         authService.logout();
         return ApiResponse.ok();
@@ -70,6 +71,7 @@ public class AuthController {
 
     @PostMapping("/refresh")
     @Operation(summary = "刷新 Access Token")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<String> refreshAccessToken(@RequestBody RefreshTokenReq req) {
         String newToken = authService.refreshAccessToken(req.refreshToken());
         return ApiResponse.ok(newToken);

@@ -1,5 +1,6 @@
 package com.adminplus.service.impl;
 
+import com.adminplus.constants.OperationType;
 import com.adminplus.dto.RoleCreateReq;
 import com.adminplus.dto.RoleUpdateReq;
 import com.adminplus.entity.RoleEntity;
@@ -7,6 +8,7 @@ import com.adminplus.entity.RoleMenuEntity;
 import com.adminplus.exception.BizException;
 import com.adminplus.repository.RoleMenuRepository;
 import com.adminplus.repository.RoleRepository;
+import com.adminplus.service.LogService;
 import com.adminplus.service.RoleService;
 import com.adminplus.vo.RoleVO;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
     private final RoleMenuRepository roleMenuRepository;
+    private final LogService logService;
 
     @Override
     @Transactional(readOnly = true)
@@ -83,6 +86,9 @@ public class RoleServiceImpl implements RoleService {
         role.setSortOrder(req.sortOrder());
 
         role = roleRepository.save(role);
+
+        // 记录审计日志
+        logService.log("角色管理", OperationType.CREATE, "创建角色: " + role.getName() + " (" + role.getCode() + ")");
 
         return new RoleVO(
                 role.getId(),
@@ -145,6 +151,9 @@ public class RoleServiceImpl implements RoleService {
 
         // 删除角色（逻辑删除或物理删除，这里使用物理删除）
         roleRepository.delete(role);
+
+        // 记录审计日志
+        logService.log("角色管理", OperationType.DELETE, "删除角色: " + role.getName() + " (" + role.getCode() + ")");
     }
 
     @Override
@@ -167,6 +176,12 @@ public class RoleServiceImpl implements RoleService {
                 return roleMenu;
             }).toList();
             roleMenuRepository.saveAll(roleMenus);
+        }
+
+        // 记录审计日志
+        var role = roleRepository.findById(roleId).orElse(null);
+        if (role != null) {
+            logService.log("角色管理", OperationType.UPDATE, "分配菜单权限: " + role.getName() + " -> " + menuIds.size() + " 个菜单");
         }
     }
 

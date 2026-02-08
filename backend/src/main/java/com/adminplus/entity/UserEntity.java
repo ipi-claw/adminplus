@@ -15,9 +15,17 @@ import java.util.Map;
  */
 @Data
 @Entity
-@Table(name = "sys_user", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "username")
-})
+@Table(name = "sys_user",
+       uniqueConstraints = {
+           @UniqueConstraint(columnNames = "username")
+       },
+       indexes = {
+           @Index(name = "idx_username", columnList = "username"),
+           @Index(name = "idx_email", columnList = "email"),
+           @Index(name = "idx_phone", columnList = "phone"),
+           @Index(name = "idx_status", columnList = "status"),
+           @Index(name = "idx_deleted", columnList = "deleted")
+       })
 public class UserEntity extends BaseEntity {
 
     /**
