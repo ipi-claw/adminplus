@@ -732,6 +732,10 @@ const handleForceOffline = async (user) => {
 
 // 组件挂载时获取数据
 onMounted(async () => {
+  // 先初始化图表
+  initCharts()
+  
+  // 然后获取数据
   await fetchStats()
   await fetchUserGrowth()
   await fetchRoleDistribution()
@@ -739,7 +743,6 @@ onMounted(async () => {
   await fetchRecentLogs()
   await fetchSystemInfo()
   await fetchOnlineUsers()
-  initCharts()
 })
 
 // 组件卸载前清理
