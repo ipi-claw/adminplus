@@ -2,40 +2,40 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { login as loginApi, getCurrentUser, getCurrentUserPermissions } from '@/api/auth'
 import { assignRoles as assignRolesApi, getUserRoleIds as getUserRoleIdsApi } from '@/api/user'
-import { encryptData, decryptData } from '@/utils/encryption'
+import { setEncryptedSession, getEncryptedSession } from '@/utils/encryption'
 
 export const useUserStore = defineStore('user', () => {
-  // 从 sessionStorage 中读取数据（暂时使用明文存储，待加密功能稳定后重新启用）
-  const token = ref(sessionStorage.getItem('token') || '')
-  const user = ref(JSON.parse(sessionStorage.getItem('user') || 'null'))
-  const permissions = ref(JSON.parse(sessionStorage.getItem('permissions') || '[]'))
-  const hasLoadedRoutes = ref(sessionStorage.getItem('hasLoadedRoutes') === 'true')
+  // 从 sessionStorage 中读取数据（使用加密存储）
+  const token = ref('')
+  const user = ref(null)
+  const permissions = ref([])
+  const hasLoadedRoutes = ref(false)
 
   /**
-   * 设置 token（明文存储，待加密功能稳定后重新启用加密）
+   * 设置 token（加密存储）
    * @param {string} val - token 值
    */
-  const setToken = (val) => {
+  const setToken = async (val) => {
     token.value = val
-    sessionStorage.setItem('token', val)
+    await setEncryptedSession('token', val)
   }
 
   /**
-   * 设置用户信息（明文存储，待加密功能稳定后重新启用加密）
+   * 设置用户信息（加密存储）
    * @param {Object} val - 用户信息
    */
-  const setUser = (val) => {
+  const setUser = async (val) => {
     user.value = val
-    sessionStorage.setItem('user', JSON.stringify(val))
+    await setEncryptedSession('user', val)
   }
 
   /**
-   * 设置权限列表（明文存储，待加密功能稳定后重新启用加密）
+   * 设置权限列表（加密存储）
    * @param {string[]} val - 权限列表
    */
-  const setPermissions = (val) => {
+  const setPermissions = async (val) => {
     permissions.value = val || []
-    sessionStorage.setItem('permissions', JSON.stringify(val || []))
+    await setEncryptedSession('permissions', val || [])
   }
 
   /**
@@ -57,9 +57,9 @@ export const useUserStore = defineStore('user', () => {
    */
   const login = async (username, password, captchaCode, captchaId) => {
     const data = await loginApi({ username, password, captchaCode, captchaId })
-    setToken(data.token)
-    setUser(data.user)
-    setPermissions(data.permissions || [])
+    await setToken(data.token)
+    await setUser(data.user)
+    await setPermissions(data.permissions || [])
     // 登录后重置路由加载状态
     setRoutesLoaded(false)
     return data
@@ -71,7 +71,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const getUserInfo = async () => {
     const data = await getCurrentUser()
-    setUser(data)
+    await setUser(data)
     return data
   }
 
@@ -81,7 +81,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const refreshPermissions = async () => {
     const data = await getCurrentUserPermissions()
-    setPermissions(data || [])
+    await setPermissions(data || [])
     return data
   }
 
@@ -100,6 +100,22 @@ export const useUserStore = defineStore('user', () => {
     sessionStorage.removeItem('hasLoadedRoutes')
     // 同时清除 refreshToken（如果存在）
     sessionStorage.removeItem('refreshToken')
+  }
+
+  /**
+   * 初始化 store，从加密的 sessionStorage 中加载数据
+   */
+  const initialize = async () => {
+    try {
+      token.value = await getEncryptedSession('token', '')
+      user.value = await getEncryptedSession('user', null)
+      permissions.value = await getEncryptedSession('permissions', [])
+      hasLoadedRoutes.value = sessionStorage.getItem('hasLoadedRoutes') === 'true'
+    } catch (error) {
+      console.error('[UserStore] 初始化失败:', error)
+      // 如果解密失败，清除所有数据
+      logout()
+    }
   }
 
   /**
@@ -169,6 +185,7 @@ export const useUserStore = defineStore('user', () => {
     hasAnyPermission,
     hasAllPermissions,
     assignRoles,
-    getUserRoleIds
+    getUserRoleIds,
+    initialize
   }
 })

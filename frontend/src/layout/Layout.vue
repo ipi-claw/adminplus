@@ -150,9 +150,7 @@ const loadUserMenus = async () => {
   try {
     const data = await getUserMenuTree()
     menus.value = data || []
-    console.log('[Layout] 用户菜单加载成功:', menus.value)
   } catch (error) {
-    console.error('[Layout] 用户菜单加载失败:', error)
     ElMessage.error('菜单加载失败')
   }
 }

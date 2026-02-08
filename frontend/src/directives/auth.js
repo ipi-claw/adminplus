@@ -49,7 +49,5 @@ function checkPermission(el, binding) {
     }
     // 如果没有权限，移除元素
     el.parentNode?.removeChild(el)
-  } else if (isDev) {
-    console.log(`[v-auth] 权限检查通过:`, value)
   }
 }

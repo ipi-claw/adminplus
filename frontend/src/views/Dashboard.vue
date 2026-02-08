@@ -359,14 +359,11 @@ const fetchStats = async () => {
 
 // 获取用户增长趋势
 const fetchUserGrowth = async () => {
-  console.log('[Dashboard] 开始获取用户增长趋势数据')
   try {
     const data = await getUserGrowth()
-    console.log('[Dashboard] 用户增长趋势数据:', data)
 
     // 检查数据是否为空
     if (!data || !data.labels || data.labels.length === 0 || !data.values || data.values.length === 0) {
-      console.warn('[Dashboard] 用户增长趋势数据为空')
       // 数据为空，显示空状态
       userGrowthChart.clear()
       userGrowthChart.setOption({
@@ -424,24 +421,18 @@ const fetchUserGrowth = async () => {
       ]
     }
     userGrowthChart.setOption(option)
-    console.log('[Dashboard] 用户增长趋势图表渲染成功')
   } catch (error) {
-    // 只有真正的接口错误才显示错误提示
-    console.error('[Dashboard] 获取用户增长趋势失败:', error)
     ElMessage.error('获取用户增长趋势失败')
   }
 }
 
 // 获取角色分布
 const fetchRoleDistribution = async () => {
-  console.log('[Dashboard] 开始获取角色分布数据')
   try {
     const data = await getRoleDistribution()
-    console.log('[Dashboard] 角色分布数据:', data)
 
     // 检查数据是否为空
     if (!data || !data.labels || data.labels.length === 0 || !data.values || data.values.length === 0) {
-      console.warn('[Dashboard] 角色分布数据为空')
       // 数据为空，显示空状态
       roleDistributionChart.clear()
       roleDistributionChart.setOption({
@@ -504,24 +495,18 @@ const fetchRoleDistribution = async () => {
       ]
     }
     roleDistributionChart.setOption(option)
-    console.log('[Dashboard] 角色分布图表渲染成功')
   } catch (error) {
-    // 只有真正的接口错误才显示错误提示
-    console.error('[Dashboard] 获取角色分布失败:', error)
     ElMessage.error('获取角色分布失败')
   }
 }
 
 // 获取菜单类型分布
 const fetchMenuDistribution = async () => {
-  console.log('[Dashboard] 开始获取菜单类型分布数据')
   try {
     const data = await getMenuDistribution()
-    console.log('[Dashboard] 菜单类型分布数据:', data)
 
     // 检查数据是否为空
     if (!data || !data.labels || data.labels.length === 0 || !data.values || data.values.length === 0) {
-      console.warn('[Dashboard] 菜单类型分布数据为空')
       // 数据为空，显示空状态
       menuDistributionChart.clear()
       menuDistributionChart.setOption({
@@ -576,10 +561,7 @@ const fetchMenuDistribution = async () => {
       ]
     }
     menuDistributionChart.setOption(option)
-    console.log('[Dashboard] 菜单类型分布图表渲染成功')
   } catch (error) {
-    // 只有真正的接口错误才显示错误提示
-    console.error('[Dashboard] 获取菜单类型分布失败:', error)
     ElMessage.error('获取菜单类型分布失败')
   }
 }

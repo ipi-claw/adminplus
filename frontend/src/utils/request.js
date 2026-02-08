@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
-import { decryptData, encryptData } from '@/utils/encryption'
+import { getEncryptedSession, setEncryptedSession } from '@/utils/encryption'
 
 // Token 刷新机制
 let isRefreshing = false
@@ -25,13 +25,33 @@ const onRefreshed = (newToken) => {
 }
 
 /**
+ * 获取 CSRF Token
+ * @returns {Promise<string>} CSRF Token
+ */
+export const getCsrfToken = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL || '/api'}/csrf-token`, {
+      withCredentials: true
+    })
+    const csrfToken = response.headers['x-csrf-token']
+    if (csrfToken) {
+      sessionStorage.setItem('csrfToken', csrfToken)
+    }
+    return csrfToken
+  } catch (error) {
+    console.error('[CSRF] 获取 CSRF Token 失败:', error)
+    throw error
+  }
+}
+
+/**
  * 刷新 token
  * @returns {Promise<string>} 新的 token
  */
 const refreshToken = async () => {
   try {
-    // 明文获取 refresh token（待加密功能稳定后重新启用加密）
-    const refreshTokenValue = sessionStorage.getItem('refreshToken')
+    // 使用加密存储获取 refresh token
+    const refreshTokenValue = await getEncryptedSession('refreshToken', null)
     if (!refreshTokenValue) {
       throw new Error('No refresh token available')
     }
@@ -43,10 +63,10 @@ const refreshToken = async () => {
 
     const { token, refreshToken: newRefreshToken } = response.data
 
-    // 明文更新 sessionStorage
-    sessionStorage.setItem('token', token)
+    // 使用加密存储更新 sessionStorage
+    await setEncryptedSession('token', token)
     if (newRefreshToken) {
-      sessionStorage.setItem('refreshToken', newRefreshToken)
+      await setEncryptedSession('refreshToken', newRefreshToken)
     }
 
     return token
@@ -77,16 +97,20 @@ const request = axios.create({
 
 // 请求拦截器
 request.interceptors.request.use(
-  config => {
-    // 明文获取 token（待加密功能稳定后重新启用加密）
-    const token = sessionStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+  async config => {
+    // 使用加密存储获取 token
+    try {
+      const token = await getEncryptedSession('token', '')
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+    } catch (error) {
+      console.error('[Request] 获取 token 失败:', error)
     }
 
-    // CSRF 防护：从 sessionStorage 获取 CSRF token 并添加到请求头
+    // CSRF 防护：只在写操作（POST、PUT、DELETE、PATCH）时添加 CSRF Token
     const csrfToken = sessionStorage.getItem('csrfToken')
-    if (csrfToken) {
+    if (csrfToken && ['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase())) {
       config.headers['X-CSRF-TOKEN'] = csrfToken
     }
 
@@ -108,22 +132,16 @@ request.interceptors.response.use(
       sessionStorage.setItem('csrfToken', csrfToken)
     }
 
-    console.log('[Request] 响应成功:', response.config.url, { code, message, data })
-
     if (code === 200) {
       return data
     } else {
-      console.error('[Request] 响应失败:', response.config.url, { code, message })
       ElMessage.error(message || '请求失败')
       return Promise.reject(new Error(message || '请求失败'))
     }
   },
   async error => {
-    console.error('[Request] 请求错误:', error.config?.url, error)
-
     if (error.response) {
       const { status, data } = error.response
-      console.error('[Request] 错误响应:', { status, data })
 
       if (status === 401) {
         const originalConfig = error.config
