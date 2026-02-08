@@ -6,8 +6,11 @@ import com.adminplus.dto.MenuUpdateReq;
 import com.adminplus.dto.MenuBatchStatusReq;
 import com.adminplus.dto.MenuBatchDeleteReq;
 import com.adminplus.entity.MenuEntity;
+import com.adminplus.entity.UserRoleEntity;
 import com.adminplus.exception.BizException;
 import com.adminplus.repository.MenuRepository;
+import com.adminplus.repository.RoleMenuRepository;
+import com.adminplus.repository.UserRoleRepository;
 import com.adminplus.service.LogService;
 import com.adminplus.service.MenuService;
 import com.adminplus.vo.MenuVO;
@@ -36,6 +39,8 @@ public class MenuServiceImpl implements MenuService {
 
     private final MenuRepository menuRepository;
     private final LogService logService;
+    private final UserRoleRepository userRoleRepository;
+    private final RoleMenuRepository roleMenuRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -285,5 +290,85 @@ public class MenuServiceImpl implements MenuService {
 
         // 记录审计日志
         logService.log("菜单管理", OperationType.DELETE, "批量删除菜单，数量: " + req.ids().size());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MenuVO> getUserMenuTree(Long userId) {
+        // 1. 查询用户的角色ID列表
+        List<Long> roleIds = userRoleRepository.findByUserId(userId).stream()
+                .map(UserRoleEntity::getRoleId)
+                .toList();
+
+        if (roleIds.isEmpty()) {
+            return List.of();
+        }
+
+        // 2. 查询这些角色的菜单ID列表（去重）
+        Set<Long> menuIds = roleIds.stream()
+                .flatMap(roleId -> roleMenuRepository.findMenuIdByRoleId(roleId).stream())
+                .collect(Collectors.toSet());
+
+        if (menuIds.isEmpty()) {
+            return List.of();
+        }
+
+        // 3. 查询所有菜单（包括父菜单），因为需要构建树形结构
+        List<MenuEntity> allMenus = menuRepository.findAllByOrderBySortOrderAsc();
+
+        // 4. 获取用户可访问的菜单ID集合（包括父菜单）
+        Set<Long> accessibleMenuIds = new HashSet<>(menuIds);
+        // 递归添加所有父菜单
+        for (Long menuId : menuIds) {
+            addParentMenus(allMenus, accessibleMenuIds, menuId);
+        }
+
+        // 5. 过滤出用户可访问的菜单
+        List<MenuEntity> userMenus = allMenus.stream()
+                .filter(menu -> accessibleMenuIds.contains(menu.getId()))
+                .filter(menu -> menu.getVisible() == 1 && menu.getStatus() == 1) // 只返回可见且启用状态的菜单
+                .toList();
+
+        // 6. 转换为 VO 并构建树形结构
+        List<MenuVO> menuVOs = userMenus.stream().map(menu -> new MenuVO(
+                menu.getId(),
+                menu.getParentId(),
+                menu.getType(),
+                menu.getName(),
+                menu.getPath(),
+                menu.getComponent(),
+                menu.getPermKey(),
+                menu.getIcon(),
+                menu.getSortOrder(),
+                menu.getVisible(),
+                menu.getStatus(),
+                null, // children 稍后填充
+                menu.getCreateTime(),
+                menu.getUpdateTime()
+        )).toList();
+
+        // 7. 构建树形结构
+        return buildTreeWithChildren(menuVOs, null);
+    }
+
+    /**
+     * 递归添加父菜单到集合中
+     */
+    private void addParentMenus(List<MenuEntity> allMenus, Set<Long> menuIds, Long menuId) {
+        if (menuId == null || menuId == 0) {
+            return;
+        }
+
+        MenuEntity menu = allMenus.stream()
+                .filter(m -> m.getId().equals(menuId))
+                .findFirst()
+                .orElse(null);
+
+        if (menu != null && menu.getParentId() != null && menu.getParentId() != 0) {
+            if (!menuIds.contains(menu.getParentId())) {
+                menuIds.add(menu.getParentId());
+                addParentMenus(allMenus, menuIds, menu.getParentId());
+            }
+        }
     }
 }

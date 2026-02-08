@@ -44,6 +44,9 @@ public class SecurityConfig {
     @Value("${jwt.secret:}")
     private String jwtSecret;
 
+    @Value("${spring.cors.allowed-origins:http://localhost:5173,http://localhost:3000}")
+    private String corsAllowedOrigins;
+
     private final TokenBlacklistFilter tokenBlacklistFilter;
     private final Environment env;
 
@@ -54,35 +57,52 @@ public class SecurityConfig {
 
     /**
      * 密钥生成（开发环境）
-     * 生产环境应从环境变量或配置文件读取
+     * 生产环境强制从环境变量读取 JWT_SECRET
+     *
+     * 安全要求：
+     * - 生产环境必须配置 JWT_SECRET 环境变量
+     * - 密钥长度至少 256 位（RSA 2048 位）
+     * - 开发环境生成临时密钥并输出警告日志
      */
     @Bean
     public RSAKey rsaKey() throws JOSEException {
-        // 如果配置了 JWT 密钥，从环境变量读取
-        if (jwtSecret != null && !jwtSecret.isEmpty()) {
+        // 生产环境：强制从环境变量读取 JWT_SECRET
+        if (isProduction()) {
+            if (jwtSecret == null || jwtSecret.isEmpty()) {
+                throw new RuntimeException(
+                    "生产环境必须配置 JWT 密钥！请设置环境变量 JWT_SECRET（至少 256 位）"
+                );
+            }
+
             try {
-                return RSAKey.parse(jwtSecret);
-            } catch (Exception e) {
-                // 解析失败，如果不是生产环境，生成临时密钥
-                if (!isProduction()) {
-                    log.warn("JWT secret 解析失败，使用生成的临时密钥（仅限开发环境）");
-                    return new RSAKeyGenerator(2048)
-                            .keyID("adminplus-key")
-                            .generate();
+                RSAKey rsaKey = RSAKey.parse(jwtSecret);
+
+                // 验证密钥长度（至少 2048 位，即 256 字节）
+                int keySize = rsaKey.toRSAPublicKey().getModulus().bitLength();
+                if (keySize < 2048) {
+                    throw new RuntimeException(
+                        String.format("JWT 密钥长度不足！当前：%d 位，要求：至少 2048 位", keySize)
+                    );
                 }
-                throw new RuntimeException("Failed to parse JWT secret from environment", e);
+
+                log.info("JWT 密钥已从环境变量加载，密钥长度：{} 位", keySize);
+                return rsaKey;
+
+            } catch (Exception e) {
+                throw new RuntimeException("JWT 密钥解析失败！请检查环境变量 JWT_SECRET 格式是否正确", e);
             }
         }
 
-        // 生产环境警告
-        if (isProduction()) {
-            throw new RuntimeException("生产环境必须配置 JWT 密钥（环境变量 JWT_SECRET）");
-        }
-
-        // 开发环境生成临时密钥
-        return new RSAKeyGenerator(2048)
-                .keyID("adminplus-key")
+        // 开发环境：生成临时密钥
+        RSAKey tempKey = new RSAKeyGenerator(2048)
+                .keyID("adminplus-dev-key")
                 .generate();
+
+        log.warn("⚠️  开发环境：使用临时生成的 JWT 密钥（仅限开发环境使用）");
+        log.warn("⚠️  警告：临时密钥每次重启都会变化，生产环境必须配置 JWT_SECRET 环境变量！");
+        log.warn("⚠️  如何配置：export JWT_SECRET=<your-rsa-key-json>");
+
+        return tempKey;
     }
 
     /**
@@ -196,12 +216,29 @@ public class SecurityConfig {
 
     /**
      * CORS 配置源
-     * 限制跨域访问，防止 CSRF 攻击
+     * 从配置文件读取允许的域名，限制跨域访问，防止 CSRF 攻击
      */
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        configuration.setAllowedOriginPatterns(java.util.List.of("*")); // 生产环境应限制为特定域名
+
+        // 从配置文件读取允许的域名
+        if (corsAllowedOrigins != null && !corsAllowedOrigins.trim().isEmpty()) {
+            String[] origins = corsAllowedOrigins.split(",");
+            configuration.setAllowedOriginPatterns(java.util.Arrays.asList(origins));
+            log.info("CORS 已配置允许的域名: {}", java.util.Arrays.toString(origins));
+        } else {
+            // 如果未配置，仅允许本地开发（生产环境会报错）
+            if (isProduction()) {
+                throw new RuntimeException(
+                    "生产环境必须配置 CORS 允许的域名！请设置环境变量 CORS_ALLOWED_ORIGINS"
+                );
+            }
+            configuration.setAllowedOriginPatterns(java.util.List.of("http://localhost:5173", "http://localhost:3000"));
+            log.warn("⚠️  开发环境：CORS 使用默认配置（仅允许本地开发服务器）");
+            log.warn("⚠️  警告：生产环境必须配置 CORS_ALLOWED_ORIGINS 环境变量！");
+        }
+
         configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(java.util.List.of("*"));
         configuration.setAllowCredentials(true);

@@ -3,6 +3,11 @@
 app:
   env: dev
 
+# CORS 配置（开发环境）
+spring:
+  cors:
+    allowed-origins: http://localhost:5173
+
 # 日志配置
 logging:
   level:

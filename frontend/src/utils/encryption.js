@@ -1,17 +1,54 @@
 /**
  * 加密工具函数
  * 用于保护 sessionStorage 中的敏感数据
- * 
+ *
  * 安全说明：
  * - 使用 AES-GCM 加密算法（Authenticated Encryption）
- * - 密钥从固定密钥派生（生产环境应使用更安全的方式）
+ * - 密钥从环境变量 VITE_ENCRYPTION_KEY 读取（生产环境必须配置）
  * - 每次加密生成新的 IV（初始化向量）
  * - 包含认证标签，防止篡改
  */
 
-// 固定密钥（生产环境应从安全配置或后端获取）
-// 注意：这是示例密钥，实际应用中应该使用更安全的方式管理密钥
-const SECRET_KEY = 'AdminPlus-Secret-Key-2024'
+// 从环境变量读取加密密钥
+// 生产环境必须通过 .env.production 配置 VITE_ENCRYPTION_KEY
+const ENV_ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY
+
+/**
+ * 验证密钥长度（至少 32 字节，用于 256 位加密）
+ * @param {string} key - 密钥字符串
+ * @throws {Error} 如果密钥长度不足
+ */
+const validateKeyLength = (key) => {
+  if (!key || key.length < 32) {
+    throw new Error(
+      '加密密钥长度不足（至少 32 字节）。' +
+      '请在环境变量 VITE_ENCRYPTION_KEY 中配置有效的加密密钥。' +
+      '可以使用以下命令生成：openssl rand -base64 32'
+    )
+  }
+}
+
+/**
+ * 获取加密密钥
+ * @returns {string} 加密密钥
+ * @throws {Error} 如果密钥未配置或长度不足
+ */
+const getSecretKey = () => {
+  // 验证密钥是否配置
+  if (!ENV_ENCRYPTION_KEY) {
+    throw new Error(
+      '未配置加密密钥 VITE_ENCRYPTION_KEY。' +
+      '请在 .env.development 或 .env.production 文件中添加：' +
+      'VITE_ENCRYPTION_KEY=<your-secret-key>' +
+      '建议使用以下命令生成：openssl rand -base64 32'
+    )
+  }
+
+  // 验证密钥长度
+  validateKeyLength(ENV_ENCRYPTION_KEY)
+
+  return ENV_ENCRYPTION_KEY
+}
 
 /**
  * 将字符串转换为 Uint8Array
@@ -57,7 +94,7 @@ const base64ToBuffer = (base64) => {
  */
 const deriveKey = async (password) => {
   const passwordBuffer = stringToBuffer(password)
-  
+
   // 导入密码材料
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -66,7 +103,7 @@ const deriveKey = async (password) => {
     false,
     ['deriveKey']
   )
-  
+
   // 派生 AES-GCM 密钥
   return crypto.subtle.deriveKey(
     {
@@ -92,16 +129,19 @@ const deriveKey = async (password) => {
  */
 export const encrypt = async (data) => {
   try {
+    // 获取并验证密钥
+    const secretKey = getSecretKey()
+
     // 将数据序列化为 JSON
     const jsonStr = JSON.stringify(data)
     const dataBuffer = stringToBuffer(jsonStr)
-    
+
     // 派生密钥
-    const key = await deriveKey(SECRET_KEY)
-    
+    const key = await deriveKey(secretKey)
+
     // 生成随机 IV
     const iv = crypto.getRandomValues(new Uint8Array(12))
-    
+
     // 加密数据
     const encrypted = await crypto.subtle.encrypt(
       {
@@ -111,17 +151,17 @@ export const encrypt = async (data) => {
       key,
       dataBuffer
     )
-    
+
     // 组合 IV + 加密数据
     const combined = new Uint8Array(iv.length + encrypted.byteLength)
     combined.set(iv)
     combined.set(new Uint8Array(encrypted), iv.length)
-    
+
     // 转换为 Base64
     return bufferToBase64(combined)
   } catch (error) {
     console.error('[Encryption] 加密失败:', error)
-    throw new Error('加密失败')
+    throw new Error('加密失败: ' + error.message)
   }
 }
 
@@ -132,18 +172,21 @@ export const encrypt = async (data) => {
  */
 export const decrypt = async (encryptedData) => {
   try {
+    // 获取并验证密钥
+    const secretKey = getSecretKey()
+
     // 从 Base64 转换为字节数组
     const combined = base64ToBuffer(encryptedData)
-    
+
     // 提取 IV（前 12 字节）
     const iv = combined.slice(0, 12)
-    
+
     // 提取加密数据（剩余字节）
     const encrypted = combined.slice(12)
-    
+
     // 派生密钥
-    const key = await deriveKey(SECRET_KEY)
-    
+    const key = await deriveKey(secretKey)
+
     // 解密数据
     const decrypted = await crypto.subtle.decrypt(
       {
@@ -153,13 +196,13 @@ export const decrypt = async (encryptedData) => {
       key,
       encrypted
     )
-    
+
     // 转换为字符串并解析 JSON
     const jsonStr = new TextDecoder().decode(decrypted)
     return JSON.parse(jsonStr)
   } catch (error) {
     console.error('[Encryption] 解密失败:', error)
-    throw new Error('解密失败')
+    throw new Error('解密失败: ' + error.message)
   }
 }
 

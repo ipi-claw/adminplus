@@ -98,3 +98,14 @@ export const batchDeleteMenu = (ids) => {
     data: { ids }
   })
 }
+
+/**
+ * 获取当前用户的菜单树（用于动态路由）
+ * @returns {Promise<Object[]>} 用户菜单树形结构
+ */
+export const getUserMenuTree = () => {
+  return request({
+    url: '/v1/sys/menus/user/tree',
+    method: 'get'
+  })
+}

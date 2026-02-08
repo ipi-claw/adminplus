@@ -11,33 +11,55 @@
         text-color="#333333"
         active-text-color="#0066FF"
       >
-        <el-menu-item index="/dashboard">
-          <el-icon><HomeFilled /></el-icon>
-          <span>首页</span>
-        </el-menu-item>
-
-        <el-sub-menu index="/system">
-          <template #title>
-            <el-icon><Setting /></el-icon>
-            <span>系统管理</span>
-          </template>
-          <el-menu-item index="/system/user">
-            <el-icon><User /></el-icon>
-            <span>用户管理</span>
+        <!-- 动态菜单 -->
+        <template v-for="menu in menus" :key="menu.id">
+          <!-- 目录类型（有子菜单） -->
+          <el-sub-menu v-if="menu.children && menu.children.length > 0" :index="menu.path || menu.id.toString()">
+            <template #title>
+              <el-icon v-if="menu.icon">
+                <component :is="getIcon(menu.icon)" />
+              </el-icon>
+              <span>{{ menu.name }}</span>
+            </template>
+            <!-- 子菜单 -->
+            <template v-for="child in menu.children" :key="child.id">
+              <!-- 如果子菜单还有子菜单（多层嵌套） -->
+              <el-sub-menu v-if="child.children && child.children.length > 0" :index="child.path || child.id.toString()">
+                <template #title>
+                  <el-icon v-if="child.icon">
+                    <component :is="getIcon(child.icon)" />
+                  </el-icon>
+                  <span>{{ child.name }}</span>
+                </template>
+                <el-menu-item
+                  v-for="grandchild in child.children"
+                  :key="grandchild.id"
+                  :index="grandchild.path"
+                  v-if="grandchild.type === 1"
+                >
+                  <el-icon v-if="grandchild.icon">
+                    <component :is="getIcon(grandchild.icon)" />
+                  </el-icon>
+                  <span>{{ grandchild.name }}</span>
+                </el-menu-item>
+              </el-sub-menu>
+              <!-- 普通菜单项 -->
+              <el-menu-item v-else :index="child.path" v-if="child.type === 1">
+                <el-icon v-if="child.icon">
+                  <component :is="getIcon(child.icon)" />
+                </el-icon>
+                <span>{{ child.name }}</span>
+              </el-menu-item>
+            </template>
+          </el-sub-menu>
+          <!-- 菜单类型（无子菜单） -->
+          <el-menu-item v-else :index="menu.path" v-if="menu.type === 1">
+            <el-icon v-if="menu.icon">
+              <component :is="getIcon(menu.icon)" />
+            </el-icon>
+            <span>{{ menu.name }}</span>
           </el-menu-item>
-          <el-menu-item index="/system/role">
-            <el-icon><UserFilled /></el-icon>
-            <span>角色管理</span>
-          </el-menu-item>
-          <el-menu-item index="/system/menu">
-            <el-icon><Menu /></el-icon>
-            <span>菜单管理</span>
-          </el-menu-item>
-          <el-menu-item index="/system/dict">
-            <el-icon><Document /></el-icon>
-            <span>字典管理</span>
-          </el-menu-item>
-        </el-sub-menu>
+        </template>
       </el-menu>
     </el-aside>
 
@@ -77,18 +99,63 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Avatar, ArrowDown, HomeFilled, Setting, User, UserFilled, Menu, Document } from '@element-plus/icons-vue'
+import {
+  Avatar,
+  ArrowDown,
+  HomeFilled,
+  Setting,
+  User,
+  UserFilled,
+  Menu,
+  Document,
+  Tools,
+  DataAnalysis,
+  Monitor
+} from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { useConfirm } from '@/composables/useConfirm'
+import { getUserMenuTree } from '@/api/menu'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
+const menus = ref([])
+
+// 图标映射表
+const iconMap = {
+  'HomeFilled': HomeFilled,
+  'Setting': Setting,
+  'User': User,
+  'UserFilled': UserFilled,
+  'Menu': Menu,
+  'Document': Document,
+  'Tools': Tools,
+  'DataAnalysis': DataAnalysis,
+  'Monitor': Monitor
+}
+
+// 获取图标组件
+const getIcon = (iconName) => {
+  return iconMap[iconName] || Menu
+}
+
 const activeMenu = computed(() => route.path)
+
+// 加载用户菜单
+const loadUserMenus = async () => {
+  try {
+    const data = await getUserMenuTree()
+    menus.value = data || []
+    console.log('[Layout] 用户菜单加载成功:', menus.value)
+  } catch (error) {
+    console.error('[Layout] 用户菜单加载失败:', error)
+    ElMessage.error('菜单加载失败')
+  }
+}
 
 // 确认操作
 const confirmLogout = useConfirm({
@@ -110,6 +177,10 @@ const handleCommand = async (command) => {
     router.push('/profile')
   }
 }
+
+onMounted(() => {
+  loadUserMenus()
+})
 </script>
 
 <style scoped>

@@ -50,4 +50,9 @@ public interface MenuService {
      * 批量删除菜单
      */
     void batchDelete(MenuBatchDeleteReq req);
+
+    /**
+     * 获取用户的菜单树（根据用户权限过滤）
+     */
+    List<MenuVO> getUserMenuTree(Long userId);
 }

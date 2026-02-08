@@ -1,111 +1,124 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { getUserMenuTree } from '@/api/menu'
+import { menusToRoutes } from '@/utils/dynamic-routes'
 
-const routes = [
+// 静态路由（公共路由，不需要权限）
+const constantRoutes = [
   {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/auth/Login.vue'),
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: false, title: '登录' }
   },
   {
+    path: '/404',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue'),
+    meta: { requiresAuth: false, title: '404' }
+  }
+]
+
+// 异步路由（需要权限）
+const asyncRoutes = []
+
+// 创建路由实例
+const router = createRouter({
+  history: createWebHistory(),
+  routes: constantRoutes
+})
+
+/**
+ * 动态添加路由
+ * @param {Object[]} menus - 菜单数据
+ */
+export const addDynamicRoutes = (menus) => {
+  // 将菜单数据转换为路由配置
+  const dynamicRoutes = menusToRoutes(menus)
+
+  // 添加 Layout 路由作为父路由
+  const layoutRoute = {
     path: '/',
     name: 'Layout',
     component: () => import('@/layout/Layout.vue'),
     redirect: '/dashboard',
     meta: { requiresAuth: true },
-    children: [
-      {
-        path: 'dashboard',
-        name: 'Dashboard',
-        component: () => import('@/views/Dashboard.vue'),
-        meta: { title: '首页' }
-      },
-      {
-        path: 'system',
-        name: 'System',
-        meta: { title: '系统管理' },
-        children: [
-          {
-            path: 'user',
-            name: 'SystemUser',
-            component: () => import('@/views/system/User.vue'),
-            meta: { title: '用户管理' }
-          },
-          {
-            path: 'role',
-            name: 'SystemRole',
-            component: () => import('@/views/system/Role.vue'),
-            meta: { title: '角色管理' }
-          },
-          {
-            path: 'menu',
-            name: 'SystemMenu',
-            component: () => import('@/views/system/Menu.vue'),
-            meta: { title: '菜单管理' }
-          },
-          {
-            path: 'dict',
-            name: 'SystemDict',
-            component: () => import('@/views/system/Dict.vue'),
-            meta: { title: '字典管理' }
-          },
-          {
-            path: 'dict/:dictId',
-            name: 'DictItem',
-            component: () => import('@/views/system/DictItem.vue'),
-            meta: { title: '字典项管理' },
-            props: true
-          }
-        ]
-      },
-      {
-        path: 'profile',
-        name: 'Profile',
-        component: () => import('@/views/Profile.vue'),
-        meta: { title: '个人中心' }
-      }
-    ]
+    children: dynamicRoutes
   }
-]
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes
-})
+  // 添加路由
+  router.addRoute(layoutRoute)
+
+  // 添加 404 路由（必须在最后）
+  router.addRoute({
+    path: '/:pathMatch(.*)*',
+    redirect: '/404'
+  })
+}
+
+/**
+ * 重置路由（用于登出时清除动态路由）
+ */
+export const resetRouter = () => {
+  const newRouter = createRouter({
+    history: createWebHistory(),
+    routes: constantRoutes
+  })
+  router.matcher = newRouter.matcher
+}
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
 
-  // 检查 token 是否存在（使用 .value 获取 ref 的实际值）
+  // 检查 token 是否存在
   const token = userStore.token.value || sessionStorage.getItem('token')
 
-  if (to.meta.requiresAuth && !token) {
+  // 不需要认证的路由
+  if (!to.meta.requiresAuth) {
+    if (to.path === '/login' && token) {
+      // 已登录用户访问登录页，跳转到首页
+      next('/')
+    } else {
+      next()
+    }
+    return
+  }
+
+  // 需要认证的路由
+  if (!token) {
+    // 未登录，跳转到登录页
     console.log('[Router] 未登录，跳转到登录页')
     next('/login')
-  } else if (to.path === '/login' && token) {
-    console.log('[Router] 已登录，跳转到首页')
-    next('/')
-  } else if (to.meta.requiresAuth && token) {
-    console.log('[Router] 已登录，验证 token 有效性')
-    // 验证 token 有效性（可选：添加 decode 验证）
+    return
+  }
+
+  // 已登录，检查是否已���载动态路由
+  if (!userStore.hasLoadedRoutes) {
     try {
-      // 简单的 token 格式验证
-      if (typeof token === 'string' && token.length > 0) {
-        next()
-      } else {
-        console.error('[Router] Token 格式无效，跳转到登录页')
-        userStore.logout()
-        next('/login')
-      }
+      console.log('[Router] 开始加载动态路由')
+
+      // 获取用户菜单树
+      const menus = await getUserMenuTree()
+
+      // 动态添加路由
+      addDynamicRoutes(menus)
+
+      // 标记路由已加载
+      userStore.setRoutesLoaded(true)
+
+      console.log('[Router] 动态路由加载完成')
+
+      // 重新进入当前路由
+      next({ ...to, replace: true })
     } catch (error) {
-      console.error('[Router] Token 验证失败，跳转到登录页', error)
+      console.error('[Router] 动态路由加载失败', error)
+      // 加载失败，跳转到登录页
       userStore.logout()
       next('/login')
     }
   } else {
-    console.log('[Router] 不需要认证，继续导航')
+    // 路由已加载，直接放行
     next()
   }
 })

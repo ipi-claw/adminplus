@@ -30,8 +30,8 @@ const onRefreshed = (newToken) => {
  */
 const refreshToken = async () => {
   try {
-    // 解密获取 refresh token
-    const refreshTokenValue = decryptData(sessionStorage.getItem('refreshToken'))
+    // 明文获取 refresh token（待加密功能稳定后重新启用加密）
+    const refreshTokenValue = sessionStorage.getItem('refreshToken')
     if (!refreshTokenValue) {
       throw new Error('No refresh token available')
     }
@@ -43,10 +43,10 @@ const refreshToken = async () => {
 
     const { token, refreshToken: newRefreshToken } = response.data
 
-    // 加密更新 sessionStorage
-    sessionStorage.setItem('token', encryptData(token))
+    // 明文更新 sessionStorage
+    sessionStorage.setItem('token', token)
     if (newRefreshToken) {
-      sessionStorage.setItem('refreshToken', encryptData(newRefreshToken))
+      sessionStorage.setItem('refreshToken', newRefreshToken)
     }
 
     return token
@@ -78,8 +78,8 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   config => {
-    // 解密获取 token
-    const token = decryptData(sessionStorage.getItem('token'))
+    // 明文获取 token（待加密功能稳定后重新启用加密）
+    const token = sessionStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }

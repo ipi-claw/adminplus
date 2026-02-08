@@ -87,4 +87,14 @@ public class MenuController {
         menuService.batchDelete(req);
         return ApiResponse.ok();
     }
+
+    @GetMapping("/user/tree")
+    @Operation(summary = "获取当前用户的菜单树")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<List<MenuVO>> getUserMenuTree() {
+        // 从 SecurityContext 获取当前用户ID
+        Long userId = com.adminplus.utils.SecurityUtils.getCurrentUserId();
+        List<MenuVO> menus = menuService.getUserMenuTree(userId);
+        return ApiResponse.ok(menus);
+    }
 }

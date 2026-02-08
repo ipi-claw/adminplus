@@ -5,39 +5,46 @@ import { assignRoles as assignRolesApi, getUserRoleIds as getUserRoleIdsApi } fr
 import { encryptData, decryptData } from '@/utils/encryption'
 
 export const useUserStore = defineStore('user', () => {
-  // 从加密的 sessionStorage 中读取数据
-  const token = ref(decryptData(sessionStorage.getItem('token')) || '')
-  const user = ref(JSON.parse(decryptData(sessionStorage.getItem('user')) || 'null'))
-  const permissions = ref(JSON.parse(decryptData(sessionStorage.getItem('permissions')) || '[]'))
+  // 从 sessionStorage 中读取数据（暂时使用明文存储，待加密功能稳定后重新启用）
+  const token = ref(sessionStorage.getItem('token') || '')
+  const user = ref(JSON.parse(sessionStorage.getItem('user') || 'null'))
+  const permissions = ref(JSON.parse(sessionStorage.getItem('permissions') || '[]'))
+  const hasLoadedRoutes = ref(sessionStorage.getItem('hasLoadedRoutes') === 'true')
 
   /**
-   * 设置 token（加密存储）
+   * 设置 token（明文存储，待加密功能稳定后重新启用加密）
    * @param {string} val - token 值
    */
   const setToken = (val) => {
     token.value = val
-    // 加密存储 token
-    sessionStorage.setItem('token', encryptData(val))
+    sessionStorage.setItem('token', val)
   }
 
   /**
-   * 设置用户信息（加密存储）
+   * 设置用户信息（明文存储，待加密功能稳定后重新启用加密）
    * @param {Object} val - 用户信息
    */
   const setUser = (val) => {
     user.value = val
-    // 加密存储用户信息
-    sessionStorage.setItem('user', encryptData(JSON.stringify(val)))
+    sessionStorage.setItem('user', JSON.stringify(val))
   }
 
   /**
-   * 设置权限列表（加密存储）
+   * 设置权限列表（明文存储，待加密功能稳定后重新启用加密）
    * @param {string[]} val - 权限列表
    */
   const setPermissions = (val) => {
     permissions.value = val || []
-    // 加密存储权限列表
-    sessionStorage.setItem('permissions', encryptData(JSON.stringify(val || [])))
+    sessionStorage.setItem('permissions', JSON.stringify(val || []))
+  }
+
+  /**
+   * 标记路由已加载
+   * @param {boolean} loaded - 是否已加载
+   */
+  const setRoutesLoaded = (loaded) => {
+    hasLoadedRoutes.value = loaded
+    sessionStorage.setItem('hasLoadedRoutes', loaded.toString())
   }
 
   /**
@@ -53,6 +60,8 @@ export const useUserStore = defineStore('user', () => {
     setToken(data.token)
     setUser(data.user)
     setPermissions(data.permissions || [])
+    // 登录后重置路由加载状态
+    setRoutesLoaded(false)
     return data
   }
 
@@ -83,10 +92,12 @@ export const useUserStore = defineStore('user', () => {
     token.value = ''
     user.value = null
     permissions.value = []
+    hasLoadedRoutes.value = false
     // 清除加密的 sessionStorage 数据
     sessionStorage.removeItem('token')
     sessionStorage.removeItem('user')
     sessionStorage.removeItem('permissions')
+    sessionStorage.removeItem('hasLoadedRoutes')
     // 同时清除 refreshToken（如果存在）
     sessionStorage.removeItem('refreshToken')
   }
@@ -145,9 +156,11 @@ export const useUserStore = defineStore('user', () => {
     token,
     user,
     permissions,
+    hasLoadedRoutes,
     setToken,
     setUser,
     setPermissions,
+    setRoutesLoaded,
     login,
     getUserInfo,
     refreshPermissions,
