@@ -33,4 +33,9 @@ public interface AuthService {
      * 用户登出
      */
     void logout();
+
+    /**
+     * 刷新 Access Token
+     */
+    String refreshAccessToken(String refreshToken);
 }

@@ -70,7 +70,32 @@ spring:
     oauth2:
       resourceserver:
         jwt:
+          # 注意：本应用使用自定义 JWT 实现，不依赖外部授权服务器
+          # 以下配置仅用于文档目的，实际 JWT 由本地生成和验证
           issuer-uri: http://localhost:8081/
+
+  # JWT 配置（自定义）
+  jwt:
+    # JWT 密钥（生产环境必须从环境变量 JWT_SECRET 设置）
+    secret: ${JWT_SECRET:}
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+      file-size-threshold: 2MB
+      location: ${java.io.tmpdir}
+
+# 病毒扫描配置
+virus:
+  scan:
+    enabled: ${VIRUS_SCAN_ENABLED:true}
+    clamav:
+      host: ${CLAMAV_HOST:localhost}
+      port: ${CLAMAV_PORT:3310}
+    timeout: 30000
 
 # Actuator 配置
 management:

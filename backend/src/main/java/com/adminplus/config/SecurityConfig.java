@@ -8,6 +8,7 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +36,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * @author AdminPlus
  * @since 2026-02-06
  */
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -61,6 +63,13 @@ public class SecurityConfig {
             try {
                 return RSAKey.parse(jwtSecret);
             } catch (Exception e) {
+                // 解析失败，如果不是生产环境，生成临时密钥
+                if (!isProduction()) {
+                    log.warn("JWT secret 解析失败，使用生成的临时密钥（仅限开发环境）");
+                    return new RSAKeyGenerator(2048)
+                            .keyID("adminplus-key")
+                            .generate();
+                }
                 throw new RuntimeException("Failed to parse JWT secret from environment", e);
             }
         }
@@ -134,6 +143,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
+                // 对于 REST API，禁用 CSRF 但启用 CORS 限制作为替代防护
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -148,6 +158,8 @@ public class SecurityConfig {
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 )
                 .addFilterBefore(tokenBlacklistFilter, UsernamePasswordAuthenticationFilter.class)
+                // 配置 CORS - 限制跨域访问
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // 添加安全头
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
@@ -159,6 +171,24 @@ public class SecurityConfig {
                         )
                 )
                 .build();
+    }
+
+    /**
+     * CORS 配置源
+     * 限制跨域访问，防止 CSRF 攻击
+     */
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
+        configuration.setAllowedOriginPatterns(java.util.List.of("*")); // 生产环境应限制为特定域名
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(java.util.List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     /**

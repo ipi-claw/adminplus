@@ -17,8 +17,9 @@ public class AdminPlusApplication {
         System.out.println("""
             ========================================
               AdminPlus 启动成功！
-              访问地址: http://localhost:8080/api
-              API 文档: http://localhost:8080/api/actuator/health
+              访问地址: http://localhost:8081/api
+              API 文档: http://localhost:8081/api/swagger-ui.html
+              健康检查: http://localhost:8081/api/actuator/health
             ========================================
             """);
     }

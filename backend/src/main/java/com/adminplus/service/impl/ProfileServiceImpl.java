@@ -8,6 +8,7 @@ import com.adminplus.exception.BizException;
 import com.adminplus.repository.ProfileRepository;
 import com.adminplus.security.CustomUserDetails;
 import com.adminplus.service.ProfileService;
+import com.adminplus.service.VirusScanService;
 import com.adminplus.utils.PasswordUtils;
 import com.adminplus.utils.SecurityUtils;
 import com.adminplus.utils.XssUtils;
@@ -45,6 +46,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VirusScanService virusScanService;
 
     // 允许的图片格式
     private static final String[] ALLOWED_IMAGE_TYPES = {
@@ -156,7 +158,7 @@ public class ProfileServiceImpl implements ProfileService {
         user.setPassword(passwordEncoder.encode(req.newPassword()));
         profileRepository.save(user);
 
-        log.info("用户 {} 修改密码成功", user.getUsername());
+        log.info("用户 {} 修改密码成功", maskUsername(user.getUsername()));
     }
 
     @Override
@@ -164,6 +166,11 @@ public class ProfileServiceImpl implements ProfileService {
     public String uploadAvatar(MultipartFile file) {
         // 验证文件
         validateImageFile(file);
+
+        // 病毒扫描
+        if (!virusScanService.scanFile(file)) {
+            throw new BizException("文件包含病毒，上传被拒绝");
+        }
 
         try {
             // 获取并验证原始文件名
@@ -293,5 +300,15 @@ public class ProfileServiceImpl implements ProfileService {
         if (file.getSize() > MAX_FILE_SIZE) {
             throw new BizException("图片大小不能超过 2MB");
         }
+    }
+
+    /**
+     * 隐藏用户名敏感信息
+     */
+    private String maskUsername(String username) {
+        if (username == null || username.length() <= 2) {
+            return "***";
+        }
+        return username.charAt(0) + "***" + username.charAt(username.length() - 1);
     }
 }

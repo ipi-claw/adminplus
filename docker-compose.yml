@@ -7,8 +7,8 @@ services:
     container_name: adminplus-postgres
     environment:
       POSTGRES_DB: adminplus
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-postgres}
     ports:
       - "5432:5432"
     volumes:
@@ -47,10 +47,10 @@ services:
       - "8081:8081"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/adminplus
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      JWT_SECRET: ${JWT_SECRET:adminplus-jwt-secret-key-2024-change-in-production}
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD-postgres}
+      JWT_SECRET: ${JWT_SECRET-}
+      SPRING_PROFILES_ACTIVE: dev
     volumes:
       - uploads-data:/app/uploads
     depends_on:

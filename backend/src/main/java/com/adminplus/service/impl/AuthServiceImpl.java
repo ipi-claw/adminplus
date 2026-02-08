@@ -10,6 +10,7 @@ import com.adminplus.repository.UserRoleRepository;
 import com.adminplus.service.AuthService;
 import com.adminplus.service.CaptchaService;
 import com.adminplus.service.PermissionService;
+import com.adminplus.service.RefreshTokenService;
 import com.adminplus.service.TokenBlacklistService;
 import com.adminplus.service.UserService;
 import com.adminplus.utils.SecurityUtils;
@@ -54,12 +55,13 @@ public class AuthServiceImpl implements AuthService {
     private final PermissionService permissionService;
     private final CaptchaService captchaService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public LoginResp login(UserLoginReq req) {
         // 验证验证码
         if (!captchaService.validateCaptcha(req.captchaId(), req.captchaCode())) {
-            log.warn("验证码验证失败: username={}", req.username());
+            log.warn("验证码验证失败: username={}", maskUsername(req.username()));
             throw new BizException("验证码错误或已过期");
         }
 
@@ -111,10 +113,13 @@ public class AuthServiceImpl implements AuthService {
             // 查询用户权限
             List<String> permissions = permissionService.getUserPermissions(user.getId());
 
-            return new LoginResp(token, "Bearer", userVO, permissions);
+            // 生成 Refresh Token
+            String refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
+            return new LoginResp(token, refreshToken, "Bearer", userVO, permissions);
 
         } catch (AuthenticationException e) {
-            log.error("登录失败: {}", e.getMessage());
+            log.error("登录失败: username={}", maskUsername(req.username()));
             throw new BizException("用户名或密码错误");
         }
     }
@@ -158,6 +163,9 @@ public class AuthServiceImpl implements AuthService {
             // 获取当前用户ID
             Long userId = SecurityUtils.getCurrentUserId();
 
+            // 撤销用户的所有 Refresh Token
+            refreshTokenService.revokeAllUserTokens(userId);
+
             // 获取当前请求
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
@@ -183,5 +191,20 @@ public class AuthServiceImpl implements AuthService {
             log.error("登出时处理 Token 黑名单失败", e);
             // 即使失败也不影响登出流程
         }
+    }
+
+    @Override
+    public String refreshAccessToken(String refreshToken) {
+        return refreshTokenService.refreshAccessToken(refreshToken);
+    }
+
+    /**
+     * 隐藏用户名敏感信息
+     */
+    private String maskUsername(String username) {
+        if (username == null || username.length() <= 2) {
+            return "***";
+        }
+        return username.charAt(0) + "***" + username.charAt(username.length() - 1);
     }
 }

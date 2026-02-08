@@ -10,6 +10,7 @@ import java.util.List;
  */
 public record LoginResp(
         String token,
+        String refreshToken,
         String tokenType,
         UserVO user,
         List<String> permissions

@@ -67,4 +67,27 @@ public class AuthController {
         authService.logout();
         return ApiResponse.ok();
     }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "刷新 Access Token")
+    public ApiResponse<String> refreshAccessToken(@RequestBody RefreshTokenReq req) {
+        String newToken = authService.refreshAccessToken(req.refreshToken());
+        return ApiResponse.ok(newToken);
+    }
+
+    /**
+     * 刷新 Token 请求
+     */
+    public record RefreshTokenReq(String refreshToken) {
+    }
+
+    /**
+     * 隐藏用户名敏感信息
+     */
+    private String maskUsername(String username) {
+        if (username == null || username.length() <= 2) {
+            return "***";
+        }
+        return username.charAt(0) + "***" + username.charAt(username.length() - 1);
+    }
 }
