@@ -7,6 +7,9 @@ import App from './App.vue'
 import { setupDirectives } from './directives'
 import { setupErrorHandler } from './utils/errorHandler'
 
+// 引入全局样式
+import './styles/index.scss'
+
 const app = createApp(App)
 const pinia = createPinia()
 
