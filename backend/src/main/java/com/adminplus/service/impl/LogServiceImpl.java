@@ -37,6 +37,12 @@ public class LogServiceImpl implements LogService {
     public void log(String module, Integer operationType, String description,
                     String method, String params, String ip) {
         try {
+            // 检查 SecurityContext 是否包含用户信息，如果为空则跳过日志保存
+            if (!SecurityUtils.isAuthenticated()) {
+                log.debug("用户已登出，跳过日志保存: module={}, operationType={}, description={}", module, operationType, description);
+                return;
+            }
+
             LogEntity logEntity = new LogEntity();
             logEntity.setUserId(SecurityUtils.getCurrentUserId());
             logEntity.setUsername(SecurityUtils.getCurrentUsername());
@@ -60,6 +66,12 @@ public class LogServiceImpl implements LogService {
     @Transactional
     public void log(String module, Integer operationType, String description, Long costTime) {
         try {
+            // 检查 SecurityContext 是否包含用户信息，如果为空则跳过日志保存
+            if (!SecurityUtils.isAuthenticated()) {
+                log.debug("用户已登出，跳过日志保存: module={}, operationType={}, description={}", module, operationType, description);
+                return;
+            }
+
             LogEntity logEntity = new LogEntity();
             logEntity.setUserId(SecurityUtils.getCurrentUserId());
             logEntity.setUsername(SecurityUtils.getCurrentUsername());
@@ -81,6 +93,12 @@ public class LogServiceImpl implements LogService {
     public void log(String module, Integer operationType, String description,
                     Integer status, String errorMsg) {
         try {
+            // 检查 SecurityContext 是否包含用户信息，如果为空则跳过日志保存
+            if (!SecurityUtils.isAuthenticated()) {
+                log.debug("用户已登出，跳过日志保存: module={}, operationType={}, description={}", module, operationType, description);
+                return;
+            }
+
             LogEntity logEntity = new LogEntity();
             logEntity.setUserId(SecurityUtils.getCurrentUserId());
             logEntity.setUsername(SecurityUtils.getCurrentUsername());

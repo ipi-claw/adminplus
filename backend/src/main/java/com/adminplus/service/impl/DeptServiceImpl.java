@@ -1,0 +1,276 @@
+package com.adminplus.service.impl;
+
+import com.adminplus.constants.OperationType;
+import com.adminplus.dto.DeptCreateReq;
+import com.adminplus.dto.DeptUpdateReq;
+import com.adminplus.entity.DeptEntity;
+import com.adminplus.exception.BizException;
+import com.adminplus.repository.DeptRepository;
+import com.adminplus.service.DeptService;
+import com.adminplus.service.LogService;
+import com.adminplus.vo.DeptVO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+/**
+ * 部门服务实现
+ *
+ * @author AdminPlus
+ * @since 2026-02-09
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class DeptServiceImpl implements DeptService {
+
+    private final DeptRepository deptRepository;
+    private final LogService logService;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DeptVO> getDeptTree() {
+        List<DeptEntity> allDepts = deptRepository.findAllByOrderBySortOrderAsc();
+
+        // 转换为 VO
+        List<DeptVO> deptVOs = allDepts.stream().map(dept -> new DeptVO(
+                dept.getId(),
+                dept.getParentId(),
+                dept.getName(),
+                dept.getCode(),
+                dept.getLeader(),
+                dept.getPhone(),
+                dept.getEmail(),
+                dept.getSortOrder(),
+                dept.getStatus(),
+                null, // children 稍后填充
+                dept.getCreateTime(),
+                dept.getUpdateTime()
+        )).toList();
+
+        // 构建树形结构
+        return buildTreeWithChildren(deptVOs, null);
+    }
+
+    /**
+     * 构建树形结构（带 children）
+     */
+    private List<DeptVO> buildTreeWithChildren(List<DeptVO> depts, Long parentId) {
+        Map<Long, List<DeptVO>> childrenMap = depts.stream()
+                .filter(dept -> dept.parentId() != null && dept.parentId() != 0)
+                .collect(Collectors.groupingBy(DeptVO::parentId));
+
+        return depts.stream()
+                .filter(dept -> {
+                    if (parentId == null) {
+                        return dept.parentId() == null || dept.parentId() == 0;
+                    }
+                    return parentId.equals(dept.parentId());
+                })
+                .map(dept -> {
+                    List<DeptVO> children = childrenMap.getOrDefault(dept.id(), new ArrayList<>());
+                    // 递归构建子节点
+                    List<DeptVO> childTree = buildTreeWithChildren(depts, dept.id());
+                    if (!childTree.isEmpty()) {
+                        children = childTree;
+                    }
+                    return new DeptVO(
+                            dept.id(),
+                            dept.parentId(),
+                            dept.name(),
+                            dept.code(),
+                            dept.leader(),
+                            dept.phone(),
+                            dept.email(),
+                            dept.sortOrder(),
+                            dept.status(),
+                            children,
+                            dept.createTime(),
+                            dept.updateTime()
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DeptVO getDeptById(Long id) {
+        var dept = deptRepository.findById(id)
+                .orElseThrow(() -> new BizException("部门不存在"));
+
+        return new DeptVO(
+                dept.getId(),
+                dept.getParentId(),
+                dept.getName(),
+                dept.getCode(),
+                dept.getLeader(),
+                dept.getPhone(),
+                dept.getEmail(),
+                dept.getSortOrder(),
+                dept.getStatus(),
+                null,
+                dept.getCreateTime(),
+                dept.getUpdateTime()
+        );
+    }
+
+    @Override
+    @Transactional
+    public DeptVO createDept(DeptCreateReq req) {
+        // 检查部门名称是否已存在
+        if (deptRepository.existsByNameAndDeletedFalse(req.name())) {
+            throw new BizException("部门名称已存在");
+        }
+
+        // 如果有父部门，检查父部门是否存在
+        if (req.parentId() != null && req.parentId() != 0) {
+            if (!deptRepository.existsById(req.parentId())) {
+                throw new BizException("父部门不存在");
+            }
+        }
+
+        var dept = new DeptEntity();
+        dept.setParentId(req.parentId());
+        dept.setName(req.name());
+        dept.setCode(req.code());
+        dept.setLeader(req.leader());
+        dept.setPhone(req.phone());
+        dept.setEmail(req.email());
+        dept.setSortOrder(req.sortOrder());
+        dept.setStatus(req.status());
+
+        dept = deptRepository.save(dept);
+
+        // 记录审计日志
+        logService.log("部门管理", OperationType.CREATE, "创建部门: " + dept.getName());
+
+        return new DeptVO(
+                dept.getId(),
+                dept.getParentId(),
+                dept.getName(),
+                dept.getCode(),
+                dept.getLeader(),
+                dept.getPhone(),
+                dept.getEmail(),
+                dept.getSortOrder(),
+                dept.getStatus(),
+                null,
+                dept.getCreateTime(),
+                dept.getUpdateTime()
+        );
+    }
+
+    @Override
+    @Transactional
+    public DeptVO updateDept(Long id, DeptUpdateReq req) {
+        var dept = deptRepository.findById(id)
+                .orElseThrow(() -> new BizException("部门不存在"));
+
+        // 如果更新部门名称，检查是否与其他部门重复
+        if (req.name() != null && !req.name().equals(dept.getName())) {
+            if (deptRepository.existsByNameAndIdNotAndDeletedFalse(req.name(), id)) {
+                throw new BizException("部门名称已存在");
+            }
+        }
+
+        req.parentId().ifPresent(parentId -> {
+            // 不能将自己设置为父部门
+            if (id.equals(parentId)) {
+                throw new BizException("不能将自己设置为父部门");
+            }
+            // 检查是否将部门设置为自己的子部门（防止循环引用）
+            if (isChildDept(id, parentId)) {
+                throw new BizException("不能将部门设置为自己的子部门");
+            }
+            if (parentId != null && parentId != 0) {
+                if (!deptRepository.existsById(parentId)) {
+                    throw new BizException("父部门不存在");
+                }
+            }
+            dept.setParentId(parentId);
+        });
+
+        req.name().ifPresent(dept::setName);
+        req.code().ifPresent(dept::setCode);
+        req.leader().ifPresent(dept::setLeader);
+        req.phone().ifPresent(dept::setPhone);
+        req.email().ifPresent(dept::setEmail);
+        req.sortOrder().ifPresent(dept::setSortOrder);
+        req.status().ifPresent(dept::setStatus);
+
+        var savedDept = deptRepository.save(dept);
+
+        return new DeptVO(
+                savedDept.getId(),
+                savedDept.getParentId(),
+                savedDept.getName(),
+                savedDept.getCode(),
+                savedDept.getLeader(),
+                savedDept.getPhone(),
+                savedDept.getEmail(),
+                savedDept.getSortOrder(),
+                savedDept.getStatus(),
+                null,
+                savedDept.getCreateTime(),
+                savedDept.getUpdateTime()
+        );
+    }
+
+    @Override
+    @Transactional
+    public void deleteDept(Long id) {
+        var dept = deptRepository.findById(id)
+                .orElseThrow(() -> new BizException("部门不存在"));
+
+        // 检查是否有子部门
+        List<DeptEntity> children = deptRepository.findByParentIdOrderBySortOrderAsc(id);
+
+        if (!children.isEmpty()) {
+            throw new BizException("该部门下存在子部门，无法删除");
+        }
+
+        deptRepository.delete(dept);
+
+        // 记录审计日志
+        logService.log("部门管理", OperationType.DELETE, "删除部门: " + dept.getName());
+    }
+
+    /**
+     * 检查目标部门是否是指定部门的子部门（防止循环引用）
+     */
+    private boolean isChildDept(Long parentId, Long targetId) {
+        if (targetId == null || targetId == 0) {
+            return false;
+        }
+
+        List<DeptEntity> allDepts = deptRepository.findAllByOrderBySortOrderAsc();
+
+        // 从目标部门开始向上查找
+        Long currentId = targetId;
+        while (currentId != null && currentId != 0) {
+            if (currentId.equals(parentId)) {
+                return true;
+            }
+
+            final Long finalCurrentId = currentId;
+            DeptEntity currentDept = allDepts.stream()
+                    .filter(d -> d.getId().equals(finalCurrentId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (currentDept == null) {
+                break;
+            }
+
+            currentId = currentDept.getParentId();
+        }
+
+        return false;
+    }
+}
