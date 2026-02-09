@@ -173,8 +173,8 @@ public class DeptServiceImpl implements DeptService {
                 .orElseThrow(() -> new BizException("部门不存在"));
 
         // 如果更新部门名称，检查是否与其他部门重复
-        if (req.name() != null && !req.name().equals(dept.getName())) {
-            if (deptRepository.existsByNameAndIdNotAndDeletedFalse(req.name(), id)) {
+        if (req.name().isPresent() && !req.name().get().equals(dept.getName())) {
+            if (deptRepository.existsByNameAndIdNotAndDeletedFalse(req.name().get(), id)) {
                 throw new BizException("部门名称已存在");
             }
         }
