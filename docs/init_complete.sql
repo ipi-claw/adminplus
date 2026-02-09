@@ -253,7 +253,7 @@ VALUES ('ROLE_ADMIN', '超级管理员', '拥有所有权限', 1, 1, 1);
 
 -- 插入管理员用户（密码: admin123，BCrypt 加密）
 INSERT INTO sys_user (username, password, nickname, email, phone, status)
-VALUES ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '超级管理员', 'admin@adminplus.com', '13800138000', 1);
+VALUES ('admin', '$2a$10$VTcKXlf66iXcRWQK.9aEquPJ4C7b53PberS0s.XIW4stVg6kpZIOu', '超级管理员', 'admin@adminplus.com', '13800138000', 1);
 
 -- 关联管理员用户和管理员角色
 INSERT INTO sys_user_role (user_id, role_id)
