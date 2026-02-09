@@ -175,6 +175,17 @@ CREATE TABLE sys_log (
     deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+-- Refresh Token 表
+CREATE TABLE refresh_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    expiry_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    create_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ================================================================================
 -- 第四部分：创建索引
 -- ================================================================================
@@ -209,6 +220,10 @@ CREATE INDEX idx_sys_log_module ON sys_log(module);
 CREATE INDEX idx_sys_log_operation_type ON sys_log(operation_type);
 CREATE INDEX idx_sys_log_create_time ON sys_log(create_time);
 
+CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
+CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token);
+CREATE INDEX idx_refresh_tokens_expiry_date ON refresh_tokens(expiry_date);
+
 -- ================================================================================
 -- 第五部分：创建更新时间触发器
 -- ================================================================================
@@ -241,6 +256,9 @@ CREATE TRIGGER update_sys_dict_item_updated_at BEFORE UPDATE ON sys_dict_item
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_sys_log_updated_at BEFORE UPDATE ON sys_log
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_refresh_tokens_updated_at BEFORE UPDATE ON refresh_tokens
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ================================================================================
