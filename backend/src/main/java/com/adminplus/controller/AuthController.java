@@ -36,7 +36,7 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "用户登录")
     public ApiResponse<LoginResp> login(@Valid @RequestBody UserLoginReq req) {
-        log.info("用户��录: {}", req.username());
+        log.info("用户登录: {}", req.username());
         LoginResp resp = authService.login(req);
         return ApiResponse.ok(resp);
     }
