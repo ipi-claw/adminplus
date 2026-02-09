@@ -24,6 +24,7 @@ const availableComponents = [
   'system/Dict',
   'system/DictItem',
   'system/Config',
+  'system/Dept',
   
   // 数据分析模块
   'analysis/Statistics',
@@ -134,6 +135,7 @@ const createDynamicImport = (path) => {
     'system/Dict.vue': () => import('@/views/system/Dict.vue'),
     'system/DictItem.vue': () => import('@/views/system/DictItem.vue'),
     'system/Config.vue': () => import('@/views/system/Config.vue'),
+    'system/Dept.vue': () => import('@/views/system/Dept.vue'),
     'analysis/Statistics.vue': () => import('@/views/analysis/Statistics.vue'),
     'analysis/Report.vue': () => import('@/views/analysis/Report.vue'),
     'Dashboard.vue': () => import('@/views/Dashboard.vue'),
