@@ -280,6 +280,9 @@ WHERE u.username = 'admin' AND r.code = 'ROLE_ADMIN';
 
 -- 插入菜单数据
 INSERT INTO sys_menu (parent_id, type, name, path, component, perm_key, icon, sort_order, visible, status) VALUES
+-- 首页
+(NULL, 1, '首页', '/dashboard', '/views/Dashboard.vue', 'dashboard:list', 'HomeFilled', 0, 1, 1),
+
 -- 系统管理模块
 (NULL, 0, '系统管理', '/system', NULL, NULL, 'Setting', 1, 1, 1),
 
