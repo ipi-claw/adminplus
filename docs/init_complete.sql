@@ -16,7 +16,14 @@
 -- ================================================================================
 
 -- 创建数据库（如果不存在）
-CREATE DATABASE IF NOT EXISTS adminplus;
+-- 注意：PostgreSQL 不支持 CREATE DATABASE IF NOT EXISTS，使用 SELECT 创建
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'adminplus') THEN
+        CREATE DATABASE adminplus;
+    END IF;
+END
+$$;
 
 -- 切换到 adminplus 数据库
 \c adminplus;
