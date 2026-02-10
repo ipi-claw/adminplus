@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import com.adminplus.listener.EntityAuditListener;
 
 /**
  * 基础实体类
@@ -17,7 +18,7 @@ import java.time.Instant;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @MappedSuperclass
-@EntityListeners(com.adminplus.listener.EntityAuditListener.class)
+@EntityListeners(EntityAuditListener.class)
 public abstract class BaseEntity {
 
     @Id

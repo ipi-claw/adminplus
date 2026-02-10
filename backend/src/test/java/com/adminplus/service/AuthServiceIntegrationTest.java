@@ -4,6 +4,7 @@ import com.adminplus.dto.UserLoginReq;
 import com.adminplus.dto.UserLoginResp;
 import com.adminplus.entity.UserEntity;
 import com.adminplus.repository.UserRepository;
+import com.adminplus.exception.BizException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,7 @@ class AuthServiceIntegrationTest extends BaseIntegrationTest {
         UserLoginReq loginReq = new UserLoginReq("nonexistent", "password123");
 
         // When & Then
-        assertThrows(com.adminplus.exception.BizException.class, 
+        assertThrows(BizException.class, 
             () -> authService.login(loginReq));
     }
 
@@ -70,7 +71,7 @@ class AuthServiceIntegrationTest extends BaseIntegrationTest {
         UserLoginReq loginReq = new UserLoginReq("testuser", "wrongpassword");
 
         // When & Then
-        assertThrows(com.adminplus.exception.BizException.class, 
+        assertThrows(BizException.class, 
             () -> authService.login(loginReq));
     }
 
@@ -87,7 +88,7 @@ class AuthServiceIntegrationTest extends BaseIntegrationTest {
         UserLoginReq loginReq = new UserLoginReq("disableduser", "password123");
 
         // When & Then
-        assertThrows(com.adminplus.exception.BizException.class, 
+        assertThrows(BizException.class, 
             () -> authService.login(loginReq));
     }
 }

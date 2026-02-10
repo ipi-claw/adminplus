@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.adminplus.exception.BizException;
 
 import java.util.Optional;
 
@@ -70,7 +71,7 @@ class UserServiceTest {
         when(userRepository.existsByUsername("testuser")).thenReturn(true);
 
         // When & Then
-        assertThrows(com.adminplus.exception.BizException.class, () -> userService.createUser(req));
+        assertThrows(BizException.class, () -> userService.createUser(req));
 
         verify(userRepository, times(1)).existsByUsername("testuser");
         verify(passwordEncoder, never()).encode(anyString());
@@ -106,7 +107,7 @@ class UserServiceTest {
         when(userRepository.findById("1")).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(com.adminplus.exception.BizException.class, () -> userService.getUserById("1"));
+        assertThrows(BizException.class, () -> userService.getUserById("1"));
 
         verify(userRepository, times(1)).findById("1");
     }

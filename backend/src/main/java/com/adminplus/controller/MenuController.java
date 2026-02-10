@@ -6,6 +6,7 @@ import com.adminplus.dto.MenuCreateReq;
 import com.adminplus.dto.MenuUpdateReq;
 import com.adminplus.service.MenuService;
 import com.adminplus.utils.ApiResponse;
+import com.adminplus.utils.SecurityUtils;
 import com.adminplus.vo.MenuVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -93,7 +94,7 @@ public class MenuController {
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<MenuVO>> getUserMenuTree() {
         // 从 SecurityContext 获取当前用户ID
-        String userId = com.adminplus.utils.SecurityUtils.getCurrentUserId();
+        String userId = SecurityUtils.getCurrentUserId();
         List<MenuVO> menus = menuService.getUserMenuTree(userId);
         return ApiResponse.ok(menus);
     }

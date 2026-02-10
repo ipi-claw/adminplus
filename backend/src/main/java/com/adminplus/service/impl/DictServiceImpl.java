@@ -11,6 +11,7 @@ import com.adminplus.service.DictService;
 import com.adminplus.service.LogService;
 import com.adminplus.vo.DictItemVO;
 import com.adminplus.vo.DictVO;
+import com.adminplus.entity.DictItemEntity;
 import com.adminplus.vo.PageResultVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -187,8 +188,8 @@ public class DictServiceImpl implements DictService {
         );
     }
 
-    private com.adminplus.vo.DictItemVO toItemVO(com.adminplus.entity.DictItemEntity item, com.adminplus.entity.DictEntity dict) {
-        return new com.adminplus.vo.DictItemVO(
+    private DictItemVO toItemVO(DictItemEntity item, DictEntity dict) {
+        return new DictItemVO(
                 item.getId(),
                 item.getDictId(),
                 dict.getDictType(),

@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import com.adminplus.exception.BizException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -55,7 +56,7 @@ class AuthControllerTest {
         UserLoginReq loginReq = new UserLoginReq("admin", "wrong-password");
 
         when(authService.login(any(UserLoginReq.class)))
-                .thenThrow(new com.adminplus.exception.BizException("用户名或密码错误"));
+                .thenThrow(new BizException("用户名或密码错误"));
 
         // When & Then
         mockMvc.perform(post("/auth/login")
