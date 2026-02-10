@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<!-- JaCoCo 测试覆盖率配置 -->
+<configuration>
+    <excludes>
+        <!-- 排除配置类 -->
+        <exclude>com/adminplus/config/**</exclude>
+        
+        <!-- 排除实体类 -->
+        <exclude>com/adminplus/entity/**</exclude>
+        
+        <!-- 排除数据传输对象 -->
+        <exclude>com/adminplus/dto/**</exclude>
+        <exclude>com/adminplus/vo/**</exclude>
+        
+        <!-- 排除常量类 -->
+        <exclude>com/adminplus/constants/**</exclude>
+        
+        <!-- 排除工具类（如果有独立测试） -->
+        <exclude>com/adminplus/utils/**</exclude>
+        
+        <!-- 排除启动类 -->
+        <exclude>com/adminplus/AdminPlusApplication.class</exclude>
+    </excludes>
+    
+    <rules>
+        <!-- 业务服务层覆盖率规则 -->
+        <rule>
+            <element>PACKAGE</element>
+            <limits>
+                <limit>
+                    <counter>LINE</counter>
+                    <value>COVEREDRATIO</value>
+                    <minimum>0.80</minimum>
+                </limit>
+                <limit>
+                    <counter>BRANCH</counter>
+                    <value>COVEREDRATIO</value>
+                    <minimum>0.70</minimum>
+                </limit>
+            </limits>
+        </rule>
+        
+        <!-- 控制器层覆盖率规则 -->
+        <rule>
+            <element>PACKAGE</element>
+            <limits>
+                <limit>
+                    <counter>LINE</counter>
+                    <value>COVEREDRATIO</value>
+                    <minimum>0.85</minimum>
+                </limit>
+            </limits>
+        </rule>
+    </rules>
+</configuration>
