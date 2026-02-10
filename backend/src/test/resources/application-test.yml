@@ -1,0 +1,43 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8081/
+
+  cors:
+    allowed-origins: http://localhost:5173
+
+# 测试环境 JWT 配置
+jwt:
+  secret: test-jwt-secret-key-for-unit-testing-only
+  dev-secret: test-dev-secret
+
+# 测试环境禁用病毒扫描
+virus:
+  scan:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.adminplus: DEBUG
